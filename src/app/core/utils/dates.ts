@@ -77,3 +77,28 @@ export function fromDateInput(value: string): IsoDate | undefined {
   const [year, month, day] = value.split('-').map(Number);
   return new Date(year, month - 1, day, 18).toISOString();
 }
+
+/** ISO → valor de <input type="datetime-local"> en hora local. */
+export function toDateTimeInput(iso?: IsoDate): string {
+  if (!iso) return '';
+  const date = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${toDateInput(iso)}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+/** Valor de <input type="datetime-local"> → ISO. */
+export function fromDateTimeInput(value: string): IsoDate | undefined {
+  if (!value) return undefined;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
+}
+
+const scheduleFormat = new Intl.DateTimeFormat('es-ES', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+const timeFormat = new Intl.DateTimeFormat('es-ES', { hour: '2-digit', minute: '2-digit' });
+
+/** «mar, 27 oct, 08:00–14:00». */
+export function formatSchedule(start?: IsoDate, end?: IsoDate): string {
+  if (!start) return '';
+  const from = scheduleFormat.format(new Date(start));
+  return end ? `${from}–${timeFormat.format(new Date(end))}` : from;
+}

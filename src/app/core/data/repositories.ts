@@ -1,5 +1,5 @@
 import { Signal } from '@angular/core';
-import { ActivityEntry, FileAsset, Id, Member, Project, QuickNote, Task, Workspace } from '../models';
+import { ActivityEntry, FileAsset, Id, Member, Project, ProjectLocation, QuickNote, Task, Workspace } from '../models';
 
 export type NewProject = Omit<Project, 'id' | 'workspaceId' | 'createdAt' | 'updatedAt'>;
 export type ProjectPatch = Partial<Omit<Project, 'id' | 'workspaceId' | 'createdAt' | 'updatedAt'>>;
@@ -68,6 +68,16 @@ export abstract class FileRepository {
   abstract remove(id: Id): Promise<void>;
   /** URL para ver o descargar el contenido (enlace externo o URL temporal del binario). */
   abstract contentUrl(id: Id): Promise<string | null>;
+}
+
+export type NewLocation = Omit<ProjectLocation, 'id' | 'workspaceId' | 'createdAt' | 'updatedAt'>;
+export type LocationPatch = Partial<Omit<ProjectLocation, 'id' | 'workspaceId' | 'projectId' | 'createdBy' | 'createdAt' | 'updatedAt'>>;
+
+export abstract class LocationRepository {
+  abstract readonly locations: Signal<ProjectLocation[]>;
+  abstract create(input: NewLocation): Promise<ProjectLocation>;
+  abstract update(id: Id, patch: LocationPatch): Promise<void>;
+  abstract remove(id: Id): Promise<void>;
 }
 
 /** Operaciones de mantenimiento del entorno de demostración. */

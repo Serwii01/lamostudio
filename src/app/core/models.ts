@@ -119,6 +119,8 @@ export interface Task {
   comments: TaskComment[];
   /** Posición dentro de su columna de estado. */
   order: number;
+  /** Localización del mapa a la que se refiere (p. ej. una visita de scouting). */
+  locationId?: Id;
   /** Nota rápida de la que procede, si se creó por conversión. */
   sourceNoteId?: Id;
   createdAt: IsoDate;
@@ -158,7 +160,9 @@ export type ActivityVerb =
   | 'file.uploaded'
   | 'file.linked'
   | 'file.deleted'
-  | 'task.moved';
+  | 'task.moved'
+  | 'location.created'
+  | 'location.status';
 
 export interface ActivityEntry {
   id: Id;
@@ -197,4 +201,34 @@ export interface FileAsset {
   thumbnail?: string;
   uploadedBy: Id;
   createdAt: IsoDate;
+}
+
+export type LocationCategory = 'shoot' | 'meeting' | 'event' | 'supplier' | 'accommodation' | 'parking' | 'other';
+export type LocationStatus = 'candidate' | 'permission_pending' | 'confirmed' | 'discarded';
+
+/**
+ * Localización de un proyecto (rodaje, reunión, evento, proveedor…), con su
+ * ficha: estado del permiso, horario, contacto y notas de producción.
+ */
+export interface ProjectLocation {
+  id: Id;
+  workspaceId: Id;
+  projectId: Id;
+  name: string;
+  category: LocationCategory;
+  status: LocationStatus;
+  address?: string;
+  lat: number;
+  lng: number;
+  /** Fecha y hora previstas (inicio y fin). */
+  startAt?: IsoDate;
+  endAt?: IsoDate;
+  contactName?: string;
+  contactPhone?: string;
+  /** Coste previsto en euros. */
+  cost?: number;
+  notes?: string;
+  createdBy: Id;
+  createdAt: IsoDate;
+  updatedAt: IsoDate;
 }

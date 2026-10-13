@@ -1,9 +1,9 @@
 import { Injectable, effect, signal } from '@angular/core';
-import { ActivityEntry, FileAsset, Member, Project, QuickNote, Task, Workspace } from '../../models';
+import { ActivityEntry, FileAsset, Member, Project, ProjectLocation, QuickNote, Task, Workspace } from '../../models';
 import { createSeed } from './mock-seed';
 
 export interface DbState {
-  version: 3;
+  version: 4;
   workspace: Workspace;
   members: Member[];
   projects: Project[];
@@ -12,6 +12,7 @@ export interface DbState {
   activity: ActivityEntry[];
   /** Metadatos de archivos; el contenido binario vive en blob-store (IndexedDB). */
   files: FileAsset[];
+  locations: ProjectLocation[];
 }
 
 const STORAGE_KEY = 'lamo-studio:db';
@@ -50,7 +51,7 @@ function loadState(): DbState {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as DbState;
-      if (parsed.version === 3) return parsed;
+      if (parsed.version === 4) return parsed;
     }
   } catch {
     // Datos corruptos o almacenamiento bloqueado: se vuelve a la semilla.

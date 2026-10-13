@@ -5,6 +5,8 @@ import {
   ProjectModuleId,
   ProjectStatus,
   ProjectType,
+  LocationCategory,
+  LocationStatus,
   TaskStatus,
 } from './models';
 
@@ -215,7 +217,7 @@ export const MODULES: ModuleDef[] = [
     label: 'Mapa',
     path: 'mapa',
     icon: 'pin',
-    built: false,
+    built: true,
     phase: 'Fase 2',
     description: 'Localizaciones de rodaje, eventos, proveedores y scouting.',
     planned: [
@@ -379,4 +381,30 @@ export const ACTIVITY_PHRASE: Record<ActivityVerb, (detail?: string) => string> 
   'file.linked': () => 'enlazó',
   'file.deleted': () => 'eliminó el archivo',
   'task.moved': (d) => `llevó al proyecto «${d}» la tarea`,
+  'location.created': () => 'añadió al mapa',
+  'location.status': (d) => `marcó como «${d}» la localización`,
 };
+
+// ---------------------------------------------------------------------------
+// Localizaciones (módulo Mapa)
+// ---------------------------------------------------------------------------
+
+/** Tipo de localización: etiqueta, icono y color del pin (tokens de la paleta). */
+export const LOCATION_CATEGORY: Record<LocationCategory, { label: string; icon: string; color: string }> = {
+  shoot: { label: 'Rodaje', icon: 'film', color: '#ff3131' },
+  meeting: { label: 'Reunión', icon: 'users', color: '#2d4c7c' },
+  event: { label: 'Evento', icon: 'sparkle', color: '#694b81' },
+  supplier: { label: 'Proveedor', icon: 'package', color: '#8d5d00' },
+  accommodation: { label: 'Alojamiento', icon: 'home', color: '#4c6a37' },
+  parking: { label: 'Parking', icon: 'flag', color: '#57544e' },
+  other: { label: 'Otro', icon: 'pin', color: '#1e1d1b' },
+};
+export const LOCATION_CATEGORY_ORDER = Object.keys(LOCATION_CATEGORY) as LocationCategory[];
+
+export const LOCATION_STATUS: Record<LocationStatus, Labeled> = {
+  candidate: { label: 'Candidata', tone: 'ocean' },
+  permission_pending: { label: 'Falta permiso', tone: 'honey' },
+  confirmed: { label: 'Confirmada', tone: 'moss' },
+  discarded: { label: 'Descartada', tone: 'neutral' },
+};
+export const LOCATION_STATUS_ORDER = Object.keys(LOCATION_STATUS) as LocationStatus[];

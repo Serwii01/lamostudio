@@ -5,6 +5,7 @@ import { PRIORITY, PRIORITY_ORDER, TASK_STATUS, TASK_STATUS_ORDER, TONE_FILL } f
 import { Task } from '../../core/models';
 import { TaskPatch } from '../../core/data/repositories';
 import { FileService } from '../../core/services/files';
+import { LocationService } from '../../core/services/locations';
 import { NoteService } from '../../core/services/notes';
 import { ProjectService } from '../../core/services/projects';
 import { SessionService } from '../../core/services/session';
@@ -73,6 +74,17 @@ import { FilesBoard } from '../files/files-board';
             <p class="mt-1 inline-flex items-center gap-1.5 rounded-md bg-honey-soft px-2 py-1 text-xs text-honey">
               <app-icon name="note" [size]="13" /> Creada desde la nota «{{ note.title || note.content.slice(0, 40) }}»
             </p>
+          }
+
+          @if (location(); as loc) {
+            <a
+              class="mt-1 ml-1 inline-flex items-center gap-1.5 rounded-md bg-ink/[0.05] px-2 py-1 text-xs text-ink-soft hover:text-ink"
+              [routerLink]="['/proyectos', loc.projectId, 'mapa']"
+              [queryParams]="{ loc: loc.id }"
+              (click)="panel.close()"
+            >
+              <app-icon name="pin" [size]="13" /> {{ loc.name }} · ver en el mapa
+            </a>
           }
 
           <!-- Estado: cuatro botones en lugar de un desplegable -->
@@ -295,6 +307,7 @@ export class TaskPanel {
   private readonly projects = inject(ProjectService);
   private readonly notes = inject(NoteService);
   private readonly files = inject(FileService);
+  private readonly locations = inject(LocationService);
   private savedTimer?: ReturnType<typeof setTimeout>;
 
   /** Confirmación visual breve tras cada cambio (no hay botón «Guardar»). */
@@ -324,6 +337,7 @@ export class TaskPanel {
     const ids = new Set(this.project()?.memberIds ?? []);
     return this.session.members().filter((m) => ids.has(m.id) && m.role !== 'client');
   });
+  protected readonly location = computed(() => this.locations.byId(this.task()?.locationId));
   protected readonly sourceNote = computed(() => {
     const id = this.task()?.sourceNoteId;
     return id ? this.notes.visible().find((n) => n.id === id) : undefined;

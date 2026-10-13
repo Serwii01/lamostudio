@@ -1,11 +1,14 @@
 import { Injectable, Provider, computed, inject } from '@angular/core';
-import { FileAsset, Id, IsoDate, Project, QuickNote, Task } from '../../models';
+import { FileAsset, Id, IsoDate, Project, ProjectLocation, QuickNote, Task } from '../../models';
 import { newId } from '../../utils/text';
 import {
   ActivityRepository,
   DataAdmin,
   FilePatch,
   FileRepository,
+  LocationPatch,
+  LocationRepository,
+  NewLocation,
   NewActivity,
   NewFile,
   NewNote,
@@ -192,6 +195,32 @@ export class MockFileRepository extends FileRepository {
 }
 
 @Injectable()
+export class MockLocationRepository extends LocationRepository {
+  private readonly db = inject(MockDb);
+  readonly locations = computed(() => this.db.state().locations);
+
+  async create(input: NewLocation): Promise<ProjectLocation> {
+    const location: ProjectLocation = {
+      ...input,
+      id: newId('loc'),
+      workspaceId: this.db.state().workspace.id,
+      createdAt: now(),
+      updatedAt: now(),
+    };
+    this.db.patch('locations', (list) => [...list, location]);
+    return location;
+  }
+
+  async update(id: Id, patch: LocationPatch): Promise<void> {
+    this.db.patch('locations', (list) => list.map((l) => (l.id === id ? { ...l, ...patch, updatedAt: now() } : l)));
+  }
+
+  async remove(id: Id): Promise<void> {
+    this.db.patch('locations', (list) => list.filter((l) => l.id !== id));
+  }
+}
+
+@Injectable()
 export class MockDataAdmin extends DataAdmin {
   private readonly db = inject(MockDb);
   readonly isDemo = true;
@@ -210,6 +239,7 @@ export function provideMockData(): Provider[] {
     { provide: NoteRepository, useClass: MockNoteRepository },
     { provide: ActivityRepository, useClass: MockActivityRepository },
     { provide: FileRepository, useClass: MockFileRepository },
+    { provide: LocationRepository, useClass: MockLocationRepository },
     { provide: DataAdmin, useClass: MockDataAdmin },
   ];
 }

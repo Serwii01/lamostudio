@@ -61,6 +61,11 @@ export const routes: Routes = [
             loadComponent: () => import('./features/files/files-board').then((m) => m.FilesBoard),
           },
           {
+            path: 'mapa',
+            canActivate: [requireModule('map')],
+            loadComponent: () => import('./features/map/map-board').then((m) => m.MapBoard),
+          },
+          {
             path: 'actividad',
             loadComponent: () => import('./features/project/project-pages').then((m) => m.ProjectActivity),
           },

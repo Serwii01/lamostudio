@@ -145,3 +145,100 @@
     @apply inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-line bg-surface px-1 font-sans text-[11px] text-ink-soft;
   }
 }
+
+/* ------------------------------------------------------------------------ */
+/* Mapa (Leaflet + OpenStreetMap), con la paleta washi                       */
+/* ------------------------------------------------------------------------ */
+@layer components {
+  .lamo-map {
+    background: var(--color-line-soft);
+    font-family: var(--font-sans);
+    z-index: 0;
+  }
+
+  /* Teselas de OSM desaturadas hacia el tono papel: el color queda para los pines. */
+  .lamo-map .leaflet-tile-pane {
+    filter: grayscale(0.7) sepia(0.18) contrast(0.92) brightness(1.04);
+  }
+
+  .lamo-map.is-adding,
+  .lamo-map.is-adding .leaflet-interactive {
+    cursor: crosshair;
+  }
+
+  .lamo-map .leaflet-control-zoom {
+    border: 1px solid var(--color-line);
+    border-radius: 9999px;
+    overflow: hidden;
+    box-shadow: none;
+  }
+  .lamo-map .leaflet-control-zoom a {
+    width: 34px;
+    height: 34px;
+    line-height: 32px;
+    color: var(--color-ink);
+    background: var(--color-surface);
+    border-color: var(--color-line);
+  }
+  .lamo-map .leaflet-control-attribution {
+    background: color-mix(in srgb, var(--color-surface) 85%, transparent);
+    color: var(--color-ink-faint);
+    border-top-left-radius: 8px;
+    font-size: 10px;
+  }
+  .lamo-map .leaflet-control-attribution a {
+    color: var(--color-ink-soft);
+  }
+
+  .lamo-pin-wrap {
+    background: transparent;
+    border: 0;
+  }
+
+  /* Gota: círculo con la esquina inferior en punta, borde de papel y punto central. */
+  .lamo-pin {
+    position: absolute;
+    left: 3px;
+    top: 2px;
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50% 50% 50% 0;
+    background: var(--pin);
+    border: 3px solid var(--color-surface);
+    box-shadow: 0 3px 8px rgb(30 29 27 / 0.3);
+    transform: rotate(-45deg);
+    transform-origin: 50% 50%;
+    transition: transform 150ms;
+  }
+  .lamo-pin > span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--color-surface);
+  }
+  .lamo-pin.is-hovered {
+    transform: rotate(-45deg) scale(1.12);
+  }
+  .lamo-pin.is-selected {
+    transform: rotate(-45deg) scale(1.25);
+    box-shadow: 0 0 0 3px var(--color-shu), 0 4px 12px rgb(30 29 27 / 0.35);
+  }
+  .lamo-pin.is-muted {
+    opacity: 0.45;
+  }
+
+  .lamo-tooltip {
+    padding: 4px 10px;
+    border: 0;
+    border-radius: 9999px;
+    background: var(--color-ink);
+    color: var(--color-surface);
+    font: 500 12px/16px var(--font-sans);
+    box-shadow: none;
+  }
+  .lamo-tooltip::before {
+    display: none;
+  }
+}

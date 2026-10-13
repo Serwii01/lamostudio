@@ -1,6 +1,7 @@
 import {
   ActivityEntry,
   FileAsset,
+  ProjectLocation,
   Id,
   Member,
   Priority,
@@ -170,6 +171,7 @@ export function createSeed(): DbState {
     task('p_mareas', 'Solicitar permiso de rodaje en Plaza de España', 'in-progress', 'urgent', 'u_marcos', 2, ['permisos'], {
       blocked: true,
       blockedReason: 'Esperando respuesta de la oficina de permisos',
+      locationId: 'loc_plaza',
       description: 'Pendiente de respuesta de la oficina de permisos del Ayuntamiento. Revisar restricciones de trípode y acceso de vehículo.',
       estimateHours: 3,
       comments: [
@@ -178,6 +180,7 @@ export function createSeed(): DbState {
       ],
     }),
     task('p_mareas', 'Scouting de localizaciones en Triana', 'in-progress', 'high', 'u_paula', 1, ['localizaciones'], {
+      locationId: 'loc_puente',
       estimateHours: 6,
       subtasks: [
         { id: 's1', title: 'Calle Betis al amanecer', done: true },
@@ -326,9 +329,70 @@ export function createSeed(): DbState {
     link('file_6', 'p_luz', 'Plano del recorrido', 'https://drive.google.com/file/d/ejemplo-recorrido', 'Google Drive', 'u_marcos', 100),
   ];
 
+  const place = (
+    id: Id,
+    projectId: Id,
+    name: string,
+    category: ProjectLocation['category'],
+    status: ProjectLocation['status'],
+    lat: number,
+    lng: number,
+    extra: Partial<ProjectLocation> = {},
+  ): ProjectLocation => ({
+    id, workspaceId: ws, projectId, name, category, status, lat, lng, createdBy: 'u_paula', createdAt: hoursAgo(80), updatedAt: hoursAgo(10), ...extra,
+  });
+  const at = (days: number, hour: number) => {
+    const d = new Date(day(days));
+    d.setHours(hour, 0, 0, 0);
+    return d.toISOString();
+  };
+
+  // Localizaciones reales de Sevilla para los proyectos con mapa.
+  const locations: ProjectLocation[] = [
+    place('loc_plaza', 'p_mareas', 'Plaza de España', 'shoot', 'permission_pending', 37.37724, -5.98689, {
+      address: 'Av. de Isabel la Católica, 41013 Sevilla',
+      startAt: at(14, 8), endAt: at(14, 14),
+      contactName: 'Oficina de rodajes del Ayuntamiento',
+      cost: 450,
+      notes: 'Revisar restricciones de trípode y acceso de vehículo. Alternativa si no hay permiso: Parque de María Luisa.',
+    }),
+    place('loc_puente', 'p_mareas', 'Puente de Isabel II', 'shoot', 'confirmed', 37.38567, -6.00208, {
+      address: 'Puente de Triana, 41001 Sevilla',
+      startAt: at(15, 19), endAt: at(15, 21),
+      notes: 'Contraluz al atardecer desde la orilla de Triana. Reflector grande y permiso de dron.',
+    }),
+    place('loc_betis', 'p_mareas', 'Calle Betis', 'shoot', 'candidate', 37.38338, -6.00097, {
+      address: 'Calle Betis, 41010 Sevilla',
+      notes: 'Plano general al amanecer: casi nadie antes de las 8:00.',
+    }),
+    place('loc_mercado', 'p_mareas', 'Mercado de Triana', 'shoot', 'candidate', 37.38625, -6.00305, {
+      address: 'Calle San Jorge 6, 41010 Sevilla',
+      notes: 'Interior. Pedir permiso a la gerencia del mercado; solo lunes por la tarde.',
+    }),
+    place('loc_parking', 'p_mareas', 'Parking Paseo de Colón', 'parking', 'confirmed', 37.38585, -5.99816, {
+      address: 'Paseo de Cristóbal Colón, 41001 Sevilla',
+      cost: 60,
+      notes: 'Furgoneta de material. Plaza reservada para los dos días.',
+    }),
+    place('loc_sanbernardo', 'p_luz', 'Plaza de San Bernardo', 'event', 'confirmed', 37.38236, -5.98045, {
+      address: 'Plaza de San Bernardo, 41018 Sevilla',
+      notes: 'Punto de luz 1: inicio del recorrido y punto de encuentro.',
+    }),
+    place('loc_santorey', 'p_luz', 'Calle Santo Rey', 'event', 'candidate', 37.38145, -5.98195, {
+      address: 'Calle Santo Rey, 41018 Sevilla',
+      notes: 'Punto de luz 4. Comprobar toma de corriente con los vecinos.',
+    }),
+    place('loc_asociacion', 'p_luz', 'Sede de la asociación vecinal', 'meeting', 'confirmed', 37.38290, -5.98180, {
+      startAt: at(3, 19), endAt: at(3, 20),
+      contactName: 'Carmen, presidenta de la asociación',
+      notes: 'Reunión semanal de seguimiento.',
+    }),
+  ];
+
   return {
-    version: 3,
+    version: 4,
     files,
+    locations,
     workspace: { id: ws, name: 'Lamo Studio', cycle: 'Temporada otoño 2026' },
     members,
     projects,
