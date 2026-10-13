@@ -41,7 +41,7 @@ export class ProjectActivity {
           <app-icon [name]="m.icon" [size]="26" />
         </span>
         <p class="hand mt-5">{{ m.phase }} · en camino</p>
-        <h2 class="mt-1 font-display text-2xl font-bold">{{ m.label }}</h2>
+        <h2 class="mt-1 font-display text-2xl font-light">{{ m.label }}</h2>
         <p class="mx-auto mt-2 max-w-md text-ink-soft">{{ m.description }}</p>
         @if (!enabled()) {
           <p class="mt-4 rounded-lg bg-honey-soft px-3 py-2 text-honey">Este módulo no está activado en el proyecto.</p>

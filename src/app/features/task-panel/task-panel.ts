@@ -61,7 +61,7 @@ import { FilesBoard } from '../files/files-board';
 
         <div class="flex-1 overflow-y-auto px-6 py-6">
           <textarea
-            class="w-full resize-none rounded-md border border-transparent bg-transparent font-display text-2xl leading-tight font-bold hover:border-line focus:border-line focus:outline-none disabled:hover:border-transparent"
+            class="w-full resize-none rounded-md border border-transparent bg-transparent font-display text-2xl leading-tight font-light hover:border-line focus:border-line focus:outline-none disabled:hover:border-transparent"
             rows="2"
             aria-label="Título"
             [value]="t.title"

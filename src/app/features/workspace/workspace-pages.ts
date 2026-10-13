@@ -173,7 +173,7 @@ export class WorkspaceSettings {
         <app-icon [name]="icon()" [size]="26" />
       </span>
       <p class="hand mt-5">{{ phase() }} · en camino</p>
-      <h1 class="mt-1 font-display text-2xl font-bold">{{ heading() }}</h1>
+      <h1 class="mt-1 font-display text-2xl font-light">{{ heading() }}</h1>
       <p class="mx-auto mt-2 max-w-md text-ink-soft">{{ summary() }}</p>
       <a routerLink="/" class="btn btn-outline mt-6">Volver al inicio</a>
     </section>

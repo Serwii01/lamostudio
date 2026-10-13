@@ -63,7 +63,7 @@ const NEW_NAME = 'Nueva localización';
             </div>
 
             <input
-              class="mt-2 w-full rounded-md border border-transparent bg-transparent font-display text-xl font-bold hover:border-line focus:border-line focus:outline-none"
+              class="mt-2 w-full rounded-md border border-transparent bg-transparent font-display text-xl font-light hover:border-line focus:border-line focus:outline-none"
               aria-label="Nombre"
               [value]="loc.name"
               [disabled]="!canEdit()"
@@ -127,7 +127,7 @@ const NEW_NAME = 'Nueva localización';
             <label class="mt-5 block">
               <span class="eyebrow">Notas de producción</span>
               <textarea
-                class="input mt-2 min-h-24 font-hand text-[15px]"
+                class="input mt-2 min-h-24 font-light text-[15px]"
                 placeholder="Accesos, horarios, permisos, luz, ruido…"
                 [value]="loc.notes ?? ''"
                 [disabled]="!canEdit()"
@@ -256,7 +256,7 @@ const NEW_NAME = 'Nueva localización';
               {{ adding() ? 'Cancelar' : 'Añadir en el mapa' }}
             </button>
             @if (adding()) {
-              <span class="rounded-full bg-surface/95 px-3 py-1.5 font-hand text-sm text-ink shadow-md">Haz clic donde quieras poner el pin</span>
+              <span class="rounded-full bg-surface/95 px-3 py-1.5 font-light text-sm text-ink shadow-md">Haz clic donde quieras poner el pin</span>
             }
           </div>
         }

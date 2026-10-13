@@ -33,7 +33,7 @@ import { Icon } from '../shared/ui/icon';
         <input class="input mb-2 font-medium" name="title" placeholder="Título (opcional)" [(ngModel)]="title" autocomplete="off" />
         <textarea
           #contentField
-          class="input min-h-36 resize-y font-hand text-base"
+          class="input min-h-36 resize-y font-light text-base"
           name="content"
           placeholder="Escribe una idea, un acuerdo de reunión, un recordatorio…"
           [(ngModel)]="content"

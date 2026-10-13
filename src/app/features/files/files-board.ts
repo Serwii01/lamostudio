@@ -177,7 +177,7 @@ const FILTERS: { id: KindFilter; label: string; kinds: FileKind[] }[] = [
               } @else {
                 <span class="flex size-full flex-col items-center justify-center gap-2 text-ink-faint">
                   <app-icon [name]="icon(f)" [size]="30" [stroke]="1.4" />
-                  <span class="font-hand text-sm">{{ f.provider ?? extension(f) }}</span>
+                  <span class="font-light text-sm">{{ f.provider ?? extension(f) }}</span>
                 </span>
               }
               @if (f.kind === 'video') {

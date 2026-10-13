@@ -1,15 +1,41 @@
 @import "tailwindcss";
 
 /*
+ * Tipografía: solo Helvetica y Helvetica Light, de las fuentes instaladas en el equipo.
+ * En Windows la Light se registra como familia aparte («Helvetica Light»), así que se
+ * reúnen las dos bajo «Lamo Helvetica»: pesos 100–349 → Light; 350–1000 → Helvetica.
+ * Así ni siquiera font-bold sintetiza una negrita: la jerarquía es de tamaño y peso Light.
+ * Sin Helvetica instalada se usa Helvetica Neue o Arial.
+ */
+@font-face {
+  font-family: "Lamo Helvetica";
+  font-style: normal;
+  font-weight: 100 349;
+  src: local("Helvetica Light"), local("Helvetica-Light"), local("Helvetica Neue Light"), local("HelveticaNeue-Light");
+}
+@font-face {
+  font-family: "Lamo Helvetica";
+  font-style: normal;
+  font-weight: 350 1000;
+  src: local("Helvetica"), local("Helvetica Neue"), local("HelveticaNeue"), local("Helvetica Neue Regular");
+}
+@font-face {
+  font-family: "Lamo Helvetica";
+  font-style: italic;
+  font-weight: 100 1000;
+  src: local("Helvetica Oblique"), local("Helvetica-Oblique"), local("Helvetica Neue Italic"), local("HelveticaNeue-Italic");
+}
+
+/*
  * Lamo Studio — estética japonesa minimalista con trazo a mano.
  * Papel washi (#E4E2DD, el fondo del logo), tinta sumi y un único acento rojo (#FF3131).
  * Los nombres de color semánticos se mantienen (coral = alerta, moss = aprobado,
  * honey = revisión, ocean = en curso, plum = cambios) con tonos tradicionales japoneses.
  */
 @theme {
-  --font-display: "Zen Maru Gothic", "Zen Kaku Gothic New", ui-rounded, sans-serif;
-  --font-sans: "Zen Kaku Gothic New", ui-sans-serif, system-ui, sans-serif;
-  --font-hand: "Klee One", "Zen Maru Gothic", cursive;
+  --font-display: "Lamo Helvetica", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-sans: "Lamo Helvetica", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-hand: "Lamo Helvetica", "Helvetica Neue", Helvetica, Arial, sans-serif;
 
   --color-paper: #e4e2dd;
   --color-surface: #f6f5f1;
@@ -118,14 +144,14 @@
     @apply text-[11px] font-medium tracking-[0.14em] text-ink-faint uppercase;
   }
 
-  /* Nota escrita a mano: anotaciones, saludos, pistas. */
+  /* Voz cercana (antes manuscrita): anotaciones, saludos, pistas, en Helvetica Light. */
   .hand {
-    @apply font-hand text-ink-soft;
+    @apply font-light text-ink-soft;
   }
 
   /* Título de página con subrayado de garabato en rojo shu. */
   .page-title {
-    @apply inline-block font-display text-[28px] leading-tight font-bold tracking-tight;
+    @apply inline-block font-display text-[32px] leading-tight font-light tracking-tight;
     padding-bottom: 0.55rem;
     background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 12'%3E%3Cpath d='M3 8c14-5 26 2 40-1s24-6 38-2 22 3 36-2' fill='none' stroke='%23ff3131' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E")
       no-repeat left bottom / 4.5rem 0.6rem;

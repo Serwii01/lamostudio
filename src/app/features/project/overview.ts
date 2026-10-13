@@ -39,19 +39,19 @@ import { Enso } from '../../shared/ui/scribble';
             <dl class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
               <div class="rounded-xl bg-ink/[0.04] p-3.5">
                 <dt class="text-xs text-ink-soft">Abiertas</dt>
-                <dd class="mt-1 font-display text-2xl font-bold">{{ stats().open }}</dd>
+                <dd class="mt-1 font-display text-2xl font-light">{{ stats().open }}</dd>
               </div>
               <div class="rounded-xl bg-honey-soft p-3.5">
                 <dt class="text-xs text-honey">En revisión</dt>
-                <dd class="mt-1 font-display text-2xl font-bold text-honey">{{ stats().inReview }}</dd>
+                <dd class="mt-1 font-display text-2xl font-light text-honey">{{ stats().inReview }}</dd>
               </div>
               <div class="rounded-xl p-3.5" [class]="stats().blocked ? 'bg-coral-soft' : 'bg-ink/[0.04]'">
                 <dt class="text-xs" [class]="stats().blocked ? 'text-coral' : 'text-ink-soft'">Bloqueadas</dt>
-                <dd class="mt-1 font-display text-2xl font-bold" [class.text-coral]="stats().blocked">{{ stats().blocked }}</dd>
+                <dd class="mt-1 font-display text-2xl font-light" [class.text-coral]="stats().blocked">{{ stats().blocked }}</dd>
               </div>
               <div class="rounded-xl p-3.5" [class]="stats().overdue ? 'bg-coral-soft' : 'bg-ink/[0.04]'">
                 <dt class="text-xs" [class]="stats().overdue ? 'text-coral' : 'text-ink-soft'">Vencidas</dt>
-                <dd class="mt-1 font-display text-2xl font-bold" [class.text-coral]="stats().overdue">{{ stats().overdue }}</dd>
+                <dd class="mt-1 font-display text-2xl font-light" [class.text-coral]="stats().overdue">{{ stats().overdue }}</dd>
               </div>
             </dl>
           </section>

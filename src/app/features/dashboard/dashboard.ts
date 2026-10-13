@@ -43,24 +43,24 @@ interface Alert {
           <app-icon name="x" />
         </button>
         <p class="hand text-base">Te damos la bienvenida a Lamo ✿</p>
-        <h2 class="mt-1 font-display text-xl font-bold">Tres gestos y ya sabes usarlo</h2>
+        <h2 class="mt-1 font-display text-xl font-light">Tres gestos y ya sabes usarlo</h2>
         <ol class="mt-5 grid gap-5 sm:grid-cols-3">
           <li class="flex gap-3">
-            <span class="grid size-9 shrink-0 place-items-center rounded-full border-2 border-shu font-hand text-lg font-semibold text-shu">1</span>
+            <span class="grid size-9 shrink-0 place-items-center rounded-full border-2 border-shu font-light text-lg font-semibold text-shu">1</span>
             <span>
               <span class="block font-medium">Crea un proyecto</span>
               <span class="text-ink-soft">Elige una plantilla y se activan solo las pestañas que necesitas.</span>
             </span>
           </li>
           <li class="flex gap-3">
-            <span class="grid size-9 shrink-0 place-items-center rounded-full border-2 border-shu font-hand text-lg font-semibold text-shu">2</span>
+            <span class="grid size-9 shrink-0 place-items-center rounded-full border-2 border-shu font-light text-lg font-semibold text-shu">2</span>
             <span>
               <span class="block font-medium">Apunta y sube</span>
               <span class="text-ink-soft">Pulsa <kbd class="kbd">N</kbd> para una nota o arrastra archivos a cualquier proyecto.</span>
             </span>
           </li>
           <li class="flex gap-3">
-            <span class="grid size-9 shrink-0 place-items-center rounded-full border-2 border-shu font-hand text-lg font-semibold text-shu">3</span>
+            <span class="grid size-9 shrink-0 place-items-center rounded-full border-2 border-shu font-light text-lg font-semibold text-shu">3</span>
             <span>
               <span class="block font-medium">Arrastra en el tablero</span>
               <span class="text-ink-soft">Mueve tarjetas entre columnas para cambiar su estado.</span>
@@ -80,15 +80,15 @@ interface Alert {
     <section class="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Resumen">
       <a routerLink="/proyectos" class="card p-5 transition-colors hover:border-ink-faint">
         <p class="text-ink-soft">Proyectos activos</p>
-        <p class="mt-3 font-display text-4xl font-bold">{{ projects.active().length }}</p>
+        <p class="mt-3 font-display text-4xl font-light">{{ projects.active().length }}</p>
       </a>
       <a routerLink="/tareas" [queryParams]="{ de: 'equipo', filtro: 'revision' }" class="card p-5 transition-colors hover:border-ink-faint">
         <p class="text-ink-soft">Para revisar</p>
-        <p class="mt-3 font-display text-4xl font-bold" [class.text-honey]="metrics().review">{{ metrics().review }}</p>
+        <p class="mt-3 font-display text-4xl font-light" [class.text-honey]="metrics().review">{{ metrics().review }}</p>
       </a>
       <a routerLink="/tareas" [queryParams]="{ de: 'equipo', filtro: 'retraso' }" class="card p-5 transition-colors hover:border-ink-faint">
         <p class="text-ink-soft">Con retraso</p>
-        <p class="mt-3 font-display text-4xl font-bold" [class.text-coral]="metrics().overdue">{{ metrics().overdue }}</p>
+        <p class="mt-3 font-display text-4xl font-light" [class.text-coral]="metrics().overdue">{{ metrics().overdue }}</p>
         @if (metrics().blocked) {
           <p class="mt-1 text-xs text-ink-faint">y {{ metrics().blocked }} {{ metrics().blocked === 1 ? 'bloqueada' : 'bloqueadas' }}</p>
         }
@@ -96,7 +96,7 @@ interface Alert {
       @if (session.can('team.viewLoad')) {
         <a routerLink="/equipo" class="card p-5 transition-colors hover:border-ink-faint">
           <p class="text-ink-soft">Carga del equipo</p>
-          <p class="mt-3 font-display text-4xl font-bold" [class.text-coral]="metrics().load > 1">{{ percent(metrics().load) }}</p>
+          <p class="mt-3 font-display text-4xl font-light" [class.text-coral]="metrics().load > 1">{{ percent(metrics().load) }}</p>
           <app-progress class="mt-2" [value]="metrics().load" [tone]="metrics().load > 1 ? 'coral' : metrics().load > 0.8 ? 'honey' : 'moss'" [height]="4" />
         </a>
       } @else {

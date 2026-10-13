@@ -54,7 +54,7 @@ type Filter = 'active' | 'closed' | 'all';
               </p>
               <app-badge [tone]="status[p.status].tone">{{ status[p.status].label }}</app-badge>
             </div>
-            <h2 class="mt-1.5 font-display text-xl leading-snug font-bold group-hover:underline">{{ p.name }}</h2>
+            <h2 class="mt-1.5 font-display text-xl leading-snug font-light group-hover:underline">{{ p.name }}</h2>
             <p class="mt-0.5 text-ink-soft">{{ p.client ?? 'Proyecto interno' }}</p>
 
             <div class="mt-auto pt-6">

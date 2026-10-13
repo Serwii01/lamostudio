@@ -1,3 +1,7 @@
+/* Helvetica y Helvetica Light, de las fuentes instaladas (ver README · Tipografía). */
+@font-face { font-family: "Lamo Helvetica"; font-style: normal; font-weight: 100 349; src: local("Helvetica Light"), local("Helvetica-Light"), local("Helvetica Neue Light"), local("HelveticaNeue-Light"); }
+@font-face { font-family: "Lamo Helvetica"; font-style: normal; font-weight: 350 1000; src: local("Helvetica"), local("Helvetica Neue"), local("HelveticaNeue"); }
+
 /*
  * Lamo Studio — clases de componente, equivalentes en CSS plano a las de src/styles.css
  * (allí se escriben con @apply de Tailwind). Leen los tokens de tokens.css.
@@ -28,7 +32,7 @@ body {
   font-family: var(--font-display);
   font-size: 16px;
   line-height: 24px;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 /* Botones */
@@ -41,7 +45,7 @@ body {
   padding: 0 16px;
   border: 0;
   border-radius: var(--radius-full);
-  font: 500 14px/20px var(--font-sans);
+  font: 400 14px/20px var(--font-sans);
   white-space: nowrap;
   cursor: pointer;
   transition: background-color 150ms, color 150ms, border-color 150ms;
@@ -87,7 +91,7 @@ body {
   border-radius: var(--radius-full);
   background: var(--surface);
   color: var(--ink-soft);
-  font: 500 12px/16px var(--font-sans);
+  font: 400 12px/16px var(--font-sans);
   white-space: nowrap;
   cursor: pointer;
 }
@@ -101,7 +105,7 @@ body {
   gap: 6px;
   padding: 2px 8px;
   border-radius: var(--radius-full);
-  font: 500 12px/16px var(--font-sans);
+  font: 400 12px/16px var(--font-sans);
   white-space: nowrap;
 }
 .badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
@@ -114,7 +118,7 @@ body {
 
 /* Texto */
 .eyebrow { font-size: 11px; line-height: 16px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); }
-.hand { font-family: var(--font-hand); color: var(--ink-soft); }
+.hand { font-family: var(--font-light); font-weight: 300; color: var(--ink-soft); }
 .count { padding: 1px 8px; border-radius: var(--radius-full); background: rgba(30, 29, 27, 0.05); font-size: 12px; font-weight: 500; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
 .kbd {
   display: inline-flex;
@@ -136,10 +140,10 @@ body {
   display: inline-block;
   margin: 0;
   padding-bottom: 0.55rem;
-  font-family: var(--font-display);
-  font-size: 28px;
+  font-family: var(--font-light);
+  font-size: 32px;
   line-height: 1.25;
-  font-weight: 700;
+  font-weight: 300;
   letter-spacing: -0.025em;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 12'%3E%3Cpath d='M3 8c14-5 26 2 40-1s24-6 38-2 22 3 36-2' fill='none' stroke='%23ff3131' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat left bottom / 4.5rem 0.6rem;
 }

@@ -43,7 +43,7 @@ const VISIBILITY_LABEL: Record<NoteVisibility, string> = {
         <form class="card h-fit space-y-3 p-4 lg:sticky lg:top-20" (ngSubmit)="create()">
           <h2 class="font-medium">Nueva nota</h2>
           <input class="input" name="title" placeholder="Título (opcional)" [(ngModel)]="title" autocomplete="off" />
-          <textarea class="input min-h-28 font-hand text-[15px]" name="content" placeholder="Escribe aquí…" [(ngModel)]="content"></textarea>
+          <textarea class="input min-h-28 font-light text-[15px]" name="content" placeholder="Escribe aquí…" [(ngModel)]="content"></textarea>
           @if (!projectId()) {
             <select class="input" name="project" aria-label="Proyecto" [(ngModel)]="targetProject">
               <option value="">Sin proyecto</option>
@@ -106,13 +106,13 @@ const VISIBILITY_LABEL: Record<NoteVisibility, string> = {
               </div>
 
               @if (editingId() === n.id) {
-                <textarea class="input mt-2 min-h-28 font-hand text-[15px]" [value]="n.content" #editor></textarea>
+                <textarea class="input mt-2 min-h-28 font-light text-[15px]" [value]="n.content" #editor></textarea>
                 <div class="mt-2 flex justify-end gap-2">
                   <button class="btn btn-ghost btn-sm" (click)="editingId.set(null)">Cancelar</button>
                   <button class="btn btn-primary btn-sm" (click)="saveEdit(n, editor.value)">Guardar</button>
                 </div>
               } @else {
-                <p class="mt-2 font-hand text-[15px] leading-relaxed whitespace-pre-line text-ink">{{ n.content }}</p>
+                <p class="mt-2 font-light text-[15px] leading-relaxed whitespace-pre-line text-ink">{{ n.content }}</p>
               }
 
               <div class="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-faint">

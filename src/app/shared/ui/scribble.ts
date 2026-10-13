@@ -51,7 +51,7 @@ const ENSO_TONE = {
       />
     </svg>
     @if (showLabel()) {
-      <span class="absolute font-hand font-semibold tabular-nums" [style.font-size.px]="size() * 0.24">{{ percent() }}%</span>
+      <span class="absolute font-light tabular-nums" [style.font-size.px]="size() * 0.24">{{ percent() }}%</span>
     }
   `,
 })

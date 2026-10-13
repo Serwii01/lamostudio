@@ -5,7 +5,7 @@ Lamo es una herramienta de producción creativa con estética japonesa minimalis
 - **Papel y tinta primero.** La página es `paper`; lo que se lee o se toca va en `surface` con borde `line`. Texto en `ink`, `ink-soft` o `ink-faint` según su importancia.
 - **Un solo rojo.** `shu` marca la identidad y lo que está activo: el punto del menú, el subrayado del título, el enso de progreso y el foco. Si todo es rojo, nada lo es: no lo uses para decorar.
 - **El estado se dice con color y con palabras.** Cada insignia combina un tono `*-soft` de fondo con su tono oscuro de texto y siempre lleva texto («Bloqueada», «En revisión»), nunca solo color.
-- **Garabato con medida.** Un trazo a mano por bloque como mucho: el subrayado del título, una frase en `hand-lead`, el enso. La interfaz sigue siendo limpia.
+- **Garabato con medida.** Un trazo a mano por bloque como mucho: el subrayado del título, una frase en `lead`, el enso. La interfaz sigue siendo limpia.
 - **Separar con bordes, no con sombras.** Las sombras (`shadow-*`) solo marcan lo que flota: menús, diálogos, el panel.
 
 ## Color
@@ -38,17 +38,20 @@ Reglas:
 
 ## Tipografía
 
-Tres familias de Google Fonts, cargadas en una sola petición:
+Solo dos estilos en todo el proyecto: **Helvetica** y **Helvetica Light**. Se usan las fuentes instaladas en el equipo (no se sirve ningún archivo), reunidas bajo la familia `Lamo Helvetica`:
 
-```html
-<link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
+```css
+@font-face { font-family: "Lamo Helvetica"; font-weight: 100 349; src: local("Helvetica Light"), local("Helvetica-Light"), local("Helvetica Neue Light"); }
+@font-face { font-family: "Lamo Helvetica"; font-weight: 350 1000; src: local("Helvetica"), local("Helvetica Neue"); }
+font-family: "Lamo Helvetica", "Helvetica Neue", Helvetica, Arial, sans-serif;
 ```
 
-- **Zen Maru Gothic** (`display`): títulos, cifras y encabezados de tarjeta, siempre en 700. Sus terminaciones redondas casan con el logo.
-- **Zen Kaku Gothic New** (`sans`): todo el texto de interfaz. 400 para leer, 500 para botones, nombres y elemento activo.
-- **Klee One** (`hand`): la voz escrita a mano. Subtítulos, pistas, estados vacíos y el contenido de las notas. Nunca por debajo de 14px ni para datos que haya que comparar.
+- **Helvetica Light** (300): títulos de página, cifras, nombres de proyecto y la voz cercana de la app (subtítulos, pistas, notas). Nunca por debajo de 14px.
+- **Helvetica** (400): todo lo demás: texto, botones, menú, insignias, encabezados de tarjeta.
+- No hay negrita: la jerarquía se hace con tamaño, con el contraste Light/normal y con color (`ink`, `ink-soft`, `ink-faint`). Un `font-weight` de 500 o 700 sigue mostrando Helvetica normal.
+- Sin Helvetica instalada, el navegador usa Helvetica Neue (Mac) o Arial (Windows).
 
-Escala: `page-title` 28 · `metric` 36 · `panel-title` 24 · `dialog-title` 18 · `card-title` 16 · `body` 14 · `small` y `badge` 12 · `eyebrow` y `kbd` 11. Las versalitas (`eyebrow`) llevan un espaciado de 0.14em.
+Escala: `metric` 36 · `page-title` 32 · `panel-title` 24 · `project-name` 20 · `dialog-title` 18 · `card-title` y `lead` 16 · `note` 15 · `body` y `hint` 14 · `small` 12 · `eyebrow` 11 (mayúsculas con 0.14em de espaciado).
 
 ## Garabatos
 
@@ -73,7 +76,7 @@ Set propio de iconos de trazo sobre una cuadrícula de 24px: trazo de 1.75px, ex
 
 ## Logo
 
-El símbolo son dos lazos apilados con un punto, en `shu` sobre `paper`. Úsalo en `shu` sobre `paper` o `surface`; nunca lo recolores ni lo pongas sobre `ink`. El nombre «LAMO» va en mayúsculas, en negrita y en `shu`, con 0.12em de espaciado. Los archivos están en el grupo Logos.
+El símbolo son dos lazos apilados con un punto, en `shu` sobre `paper`. Úsalo en `shu` sobre `paper` o `surface`; nunca lo recolores ni lo pongas sobre `ink`. El nombre «LAMO» va en mayúsculas, en Helvetica y en `shu`, con 0.12em de espaciado. Los archivos están en el grupo Logos.
 
 ## Voz y textos
 
