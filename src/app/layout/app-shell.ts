@@ -166,8 +166,8 @@ export class AppShell {
   protected readonly activeProjects = computed(() => this.projects.active());
 
   protected onKeydown(event: KeyboardEvent): void {
-    const target = event.target as HTMLElement | null;
-    const typing = !!target?.closest('input, textarea, select, [contenteditable="true"]');
+    const target = event.target;
+    const typing = target instanceof Element && !!target.closest('input, textarea, select, [contenteditable="true"]');
     if (typing || event.ctrlKey || event.metaKey || event.altKey) return;
     if (event.key.toLowerCase() === 'n' && this.session.can('note.create') && !this.panel.openId()) {
       event.preventDefault();

@@ -9,7 +9,7 @@ Estado actual: **Fase 0 + MVP con datos de demostración** (sin backend todavía
 
 ## Arrancar
 
-Requisitos: Node 22.12 o superior.
+Requisitos: Node 22.12 o superior (Angular 22 exigirá Node ≥ 22.22.3).
 
 ```bash
 npm install
@@ -82,4 +82,5 @@ Las pantallas solo dependen de los servicios, y los servicios solo de las clases
 
 ## Stack
 
-Angular 20 (componentes standalone, signals, control flow), Tailwind CSS 4, Angular CDK (drag & drop).
+Angular 21 sin zone.js (detección de cambios zoneless, componentes standalone, signals, control flow),
+Tailwind CSS 4, Angular CDK (drag & drop) y Vitest para tests unitarios (`npm test`).
