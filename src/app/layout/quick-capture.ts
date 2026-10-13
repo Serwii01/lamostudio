@@ -1,0 +1,104 @@
+import { ChangeDetectionStrategy, Component, ElementRef, afterNextRender, inject, signal, viewChild } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { NoteVisibility } from '../core/models';
+import { NoteService } from '../core/services/notes';
+import { ProjectService } from '../core/services/projects';
+import { QuickCaptureService, ToastService } from '../core/services/ui-state';
+import { Icon } from '../shared/ui/icon';
+
+/** Captura de ideas de baja fricción, disponible desde cualquier pantalla. */
+@Component({
+  selector: 'app-quick-capture',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [FormsModule, Icon],
+  host: { '(document:keydown.escape)': 'capture.close()' },
+  template: `
+    <div class="fixed inset-0 z-50 flex items-start justify-center bg-ink/25 px-4 pt-[12vh]" (click)="capture.close()">
+      <form
+        class="card w-full max-w-lg p-5 shadow-2xl shadow-ink/10"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="quick-capture-title"
+        (click)="$event.stopPropagation()"
+        (ngSubmit)="save()"
+      >
+        <div class="mb-3 flex items-center justify-between">
+          <h2 id="quick-capture-title" class="font-display text-lg font-semibold">Nota rápida</h2>
+          <button type="button" class="btn btn-ghost btn-sm" aria-label="Cerrar" (click)="capture.close()">
+            <app-icon name="x" />
+          </button>
+        </div>
+
+        <input class="input mb-2 font-medium" name="title" placeholder="Título (opcional)" [(ngModel)]="title" autocomplete="off" />
+        <textarea
+          #contentField
+          class="input min-h-32 resize-y"
+          name="content"
+          placeholder="Escribe una idea, un acuerdo de reunión, un recordatorio…"
+          [(ngModel)]="content"
+          (keydown.control.enter)="save()"
+          (keydown.meta.enter)="save()"
+        ></textarea>
+
+        <div class="mt-3 grid gap-3 sm:grid-cols-2">
+          <label>
+            <span class="label">Proyecto</span>
+            <select class="input" name="project" [(ngModel)]="projectId">
+              <option value="">Sin proyecto</option>
+              @for (p of projects.active(); track p.id) {
+                <option [value]="p.id">{{ p.name }}</option>
+              }
+            </select>
+          </label>
+          <label>
+            <span class="label">Visibilidad</span>
+            <select class="input" name="visibility" [(ngModel)]="visibility">
+              <option value="private">Solo yo</option>
+              <option value="project" [disabled]="!projectId()">Equipo del proyecto</option>
+              <option value="workspace">Todo el estudio</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="mt-5 flex items-center justify-between gap-3">
+          <span class="hidden text-xs text-ink-faint sm:inline">Ctrl + Enter para guardar</span>
+          <div class="ml-auto flex gap-2">
+            <button type="button" class="btn btn-ghost" (click)="capture.close()">Cancelar</button>
+            <button type="submit" class="btn btn-primary" [disabled]="!content().trim()">Guardar nota</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  `,
+})
+export class QuickCapture {
+  protected readonly capture = inject(QuickCaptureService);
+  protected readonly projects = inject(ProjectService);
+  private readonly notes = inject(NoteService);
+  private readonly toast = inject(ToastService);
+  private readonly router = inject(Router);
+
+  private readonly contentRef = viewChild.required<ElementRef<HTMLTextAreaElement>>('contentField');
+
+  protected readonly title = signal('');
+  protected readonly content = signal('');
+  /** Si se abre dentro de un proyecto, la nota se asocia a él por defecto. */
+  protected readonly projectId = signal(this.router.url.match(/^\/proyectos\/([^/?]+)/)?.[1] ?? '');
+  protected readonly visibility = signal<NoteVisibility>(this.projectId() ? 'project' : 'private');
+
+  constructor() {
+    if (this.projectId() === 'nuevo') this.projectId.set('');
+    afterNextRender(() => this.contentRef().nativeElement.focus());
+  }
+
+  async save(): Promise<void> {
+    const content = this.content().trim();
+    if (!content) return;
+    const projectId = this.projectId() || undefined;
+    const visibility = !projectId && this.visibility() === 'project' ? 'private' : this.visibility();
+    await this.notes.create({ content, title: this.title().trim() || undefined, projectId, visibility });
+    this.toast.show('Nota guardada');
+    this.capture.close();
+  }
+}
