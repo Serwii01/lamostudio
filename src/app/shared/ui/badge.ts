@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { TONE_BADGE, TONE_FILL, Tone } from '../../core/catalog';
+import { Doodle } from './scribble';
 
 @Component({
   selector: 'app-badge',
@@ -30,7 +31,7 @@ export class Badge {
   host: { class: 'block' },
   template: `
     <div
-      class="w-full overflow-hidden rounded-full bg-line-soft"
+      class="w-full overflow-hidden rounded-full bg-ink/10"
       [style.height.px]="height()"
       role="progressbar"
       [attr.aria-valuenow]="percent()"
@@ -45,7 +46,7 @@ export class Progress {
   /** Valor entre 0 y 1 (se recorta si lo supera). */
   readonly value = input.required<number>();
   readonly tone = input<Tone>('ink');
-  readonly height = input(6);
+  readonly height = input(5);
   protected readonly percent = computed(() => Math.round(Math.min(1, Math.max(0, this.value())) * 100));
   protected readonly fillClass = computed(() => TONE_FILL[this.tone()]);
 }
@@ -53,12 +54,14 @@ export class Progress {
 @Component({
   selector: 'app-empty',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [Doodle],
   host: { class: 'block' },
   template: `
     <div class="flex flex-col items-center justify-center gap-1 px-6 py-10 text-center">
-      <p class="font-medium text-ink">{{ title() }}</p>
+      <app-doodle [name]="doodle()" [size]="compact() ? 64 : 96" class="mb-2" />
+      <p class="font-display font-bold text-ink">{{ title() }}</p>
       @if (hint()) {
-        <p class="max-w-sm text-ink-soft">{{ hint() }}</p>
+        <p class="hand max-w-sm">{{ hint() }}</p>
       }
       <div class="mt-3 empty:hidden"><ng-content /></div>
     </div>
@@ -67,4 +70,7 @@ export class Progress {
 export class Empty {
   readonly title = input.required<string>();
   readonly hint = input<string>();
+  /** Dibujo: circle (vacío), mountain (todo en calma), paper (notas). */
+  readonly doodle = input('circle');
+  readonly compact = input(false);
 }

@@ -40,6 +40,18 @@ Para ver la app con otro rol (producción, colaborador, cliente…), cambia de u
 - Módulos de fases posteriores (calendario, mapa, pizarra, archivos, entregables, tiempo, presupuesto,
   shot list) visibles como «Próximamente» con su descripción.
 
+## Diseño
+
+Estética japonesa minimalista con trazo a mano, construida a partir del logo:
+
+- **Paleta**: papel washi `#E4E2DD` (fondo del logo), tinta sumi y un único acento rojo `#FF3131`.
+  Estados con tonos tradicionales: matcha (aprobado), kincha (revisión), ai (en curso), fuji (cambios).
+- **Tipografía**: Zen Maru Gothic (títulos, redondeada como el logo), Zen Kaku Gothic New (texto) y
+  Klee One (anotaciones y notas, como escritas a lápiz).
+- **Garabatos**: subrayado a mano en los títulos, enso de pincel para el progreso, check dibujado,
+  doodles en los estados vacíos. Componentes en `shared/ui/scribble.ts`; la marca en `shared/ui/logo.ts`.
+- Tokens de diseño en `src/styles.css` (`@theme`).
+
 ## Arquitectura
 
 ```

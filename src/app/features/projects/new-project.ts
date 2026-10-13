@@ -52,7 +52,7 @@ import { Icon } from '../../shared/ui/icon';
       </section>
 
       @if (template()) {
-        <form class="mt-8 grid gap-6 lg:grid-cols-3" (ngSubmit)="create()">
+        <form class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3" (ngSubmit)="create()">
           <section class="card space-y-4 p-5 lg:col-span-2">
             <h2 class="eyebrow">2 · Datos del proyecto</h2>
             <label class="block">
@@ -126,7 +126,7 @@ import { Icon } from '../../shared/ui/icon';
             <ul class="space-y-1">
               @for (m of modules; track m.id) {
                 <li>
-                  <label class="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 hover:bg-line-soft/60">
+                  <label class="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 hover:bg-ink/[0.03]">
                     <input
                       type="checkbox"
                       class="size-4 accent-ink"

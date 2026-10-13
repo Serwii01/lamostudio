@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Id } from '../core/models';
@@ -19,7 +19,8 @@ import { Icon } from '../shared/ui/icon';
       <span class="sr-only">Buscar</span>
       <app-icon name="search" class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ink-faint" />
       <input
-        class="input bg-surface/70 pl-9"
+        #field
+        class="input h-10 rounded-full border-transparent bg-surface/70 pr-10 pl-9 focus:bg-surface"
         placeholder="Buscar proyectos, tareas o notas…"
         [(ngModel)]="query"
         (focus)="focused.set(true)"
@@ -27,18 +28,21 @@ import { Icon } from '../shared/ui/icon';
         (keydown.escape)="query.set('')"
         autocomplete="off"
       />
+      @if (!focused()) {
+        <kbd class="kbd pointer-events-none absolute top-1/2 right-3 -translate-y-1/2">/</kbd>
+      }
     </label>
 
     @if (focused() && results(); as r) {
       <div
-        class="card absolute top-11 right-0 left-0 z-50 max-h-[70vh] overflow-y-auto p-1.5 shadow-lg shadow-ink/5"
+        class="card absolute top-12 right-0 left-0 z-50 max-h-[70vh] overflow-y-auto p-1.5 shadow-xl shadow-ink/10"
         (mousedown)="$event.preventDefault()"
       >
         @if (r.projects.length) {
           <p class="eyebrow px-2.5 pt-2 pb-1">Proyectos</p>
           @for (p of r.projects; track p.id) {
-            <button class="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-line-soft" (click)="goProject(p.id)">
-              <span class="size-2.5 shrink-0 rounded-sm" [style.background]="p.cover"></span>
+            <button class="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-ink/5" (click)="goProject(p.id)">
+              <span class="size-2.5 shrink-0 rounded-full" [style.background]="p.cover"></span>
               <span class="truncate">{{ p.name }}</span>
               @if (p.client) {
                 <span class="ml-auto truncate text-xs text-ink-faint">{{ p.client }}</span>
@@ -49,7 +53,7 @@ import { Icon } from '../shared/ui/icon';
         @if (r.tasks.length) {
           <p class="eyebrow px-2.5 pt-2 pb-1">Tareas</p>
           @for (t of r.tasks; track t.id) {
-            <button class="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-line-soft" (click)="openTask(t.id)">
+            <button class="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-ink/5" (click)="openTask(t.id)">
               <app-icon name="check-square" class="text-ink-faint" />
               <span class="truncate">{{ t.title }}</span>
               <span class="ml-auto truncate text-xs text-ink-faint">{{ projects.byId(t.projectId)?.name }}</span>
@@ -59,7 +63,7 @@ import { Icon } from '../shared/ui/icon';
         @if (r.notes.length) {
           <p class="eyebrow px-2.5 pt-2 pb-1">Notas</p>
           @for (n of r.notes; track n.id) {
-            <button class="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-line-soft" (click)="goNotes(n.projectId)">
+            <button class="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-ink/5" (click)="goNotes(n.projectId)">
               <app-icon name="note" class="text-ink-faint" />
               <span class="truncate">{{ n.title || n.content }}</span>
             </button>
@@ -78,6 +82,8 @@ export class GlobalSearch {
   private readonly notes = inject(NoteService);
   private readonly panel = inject(TaskPanelService);
   private readonly router = inject(Router);
+
+  private readonly field = viewChild.required<ElementRef<HTMLInputElement>>('field');
 
   protected readonly query = signal('');
   protected readonly focused = signal(false);
@@ -99,6 +105,10 @@ export class GlobalSearch {
         .slice(0, 4),
     };
   });
+
+  focus(): void {
+    this.field().nativeElement.focus();
+  }
 
   protected goProject(id: Id): void {
     this.reset();

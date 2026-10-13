@@ -27,23 +27,26 @@ export function requireModule(moduleId: ProjectModuleId): CanActivateFn {
   imports: [RouterOutlet, RouterLink, RouterLinkActive, AvatarStack, Badge, Empty, Icon],
   template: `
     @if (project(); as p) {
-      <div class="-mx-4 -mt-6 mb-6 border-b border-line bg-surface lg:-mx-8 lg:-mt-8">
-        <div class="h-1.5" [style.background]="p.cover"></div>
-        <div class="px-4 pt-5 lg:px-8">
+      <div class="mb-8">
+        <div>
           <a routerLink="/proyectos" class="inline-flex items-center gap-1 text-xs text-ink-faint hover:text-ink">
             <app-icon name="chevron-left" [size]="14" /> Proyectos
           </a>
           <div class="mt-2 flex flex-wrap items-end gap-x-8 gap-y-3">
             <div class="min-w-0 flex-1">
-              <p class="text-xs text-ink-soft">{{ typeLabel[p.type] }} · {{ p.client ?? 'Proyecto interno' }}</p>
-              <h1 class="page-title mt-0.5">{{ p.name }}</h1>
+              <p class="flex items-center gap-2 text-xs text-ink-soft">
+                <span class="size-2.5 rounded-full" [style.background]="p.cover"></span>
+                {{ typeLabel[p.type] }} · {{ p.client ?? 'Proyecto interno' }}
+              </p>
+              <h1 class="page-title mt-1.5">{{ p.name }}</h1>
             </div>
             <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
               @if (canManage()) {
                 <label class="sr-only" for="project-status">Estado del proyecto</label>
                 <select
                   id="project-status"
-                  class="h-7 cursor-pointer rounded-full border-0 px-3 text-xs font-medium"
+                  class="h-8 cursor-pointer rounded-full border-0 px-3.5 text-xs font-medium"
+                  title="Cambiar estado del proyecto"
                   [class]="statusClass()"
                   (change)="setStatus(p, $any($event.target).value)"
                 >
@@ -62,15 +65,23 @@ export function requireModule(moduleId: ProjectModuleId): CanActivateFn {
             </div>
           </div>
 
-          <nav class="-mb-px mt-5 flex gap-1 overflow-x-auto" aria-label="Módulos del proyecto">
+          <nav class="mt-6 flex gap-1 overflow-x-auto border-b border-line/70" aria-label="Módulos del proyecto">
             @for (m of tabs(); track m.path) {
               <a
                 [routerLink]="m.path"
-                routerLinkActive="!border-ink !text-ink"
-                class="inline-flex h-10 items-center gap-1.5 border-b-2 border-transparent px-3 whitespace-nowrap text-ink-soft hover:text-ink"
+                routerLinkActive="is-active"
+                class="group relative -mb-px inline-flex h-11 items-center gap-1.5 px-3.5 whitespace-nowrap transition-colors hover:text-ink [&.is-active]:font-medium [&.is-active]:text-ink"
+                [class]="m.soon ? 'text-ink-faint/70' : 'text-ink-soft'"
+                [attr.title]="m.soon ? m.label + ' · próximamente' : null"
               >
                 <app-icon [name]="m.icon" [size]="15" />
                 {{ m.label }}
+                @if (m.soon) {
+                  <span class="font-hand text-[10px]">pronto</span>
+                }
+                <svg class="absolute inset-x-2 -bottom-px h-1.5 opacity-0 group-[.is-active]:opacity-100" viewBox="0 0 60 6" preserveAspectRatio="none" aria-hidden="true">
+                  <path d="M2 4c10-3 18 1 28-1s18-2 28 0" fill="none" class="stroke-shu" stroke-width="2.4" stroke-linecap="round" vector-effect="non-scaling-stroke" />
+                </svg>
               </a>
             }
           </nav>
@@ -111,11 +122,14 @@ export class ProjectShell {
 
   /** Pestañas = módulos activos en el orden del proyecto + Actividad y Configuración. */
   protected readonly tabs = computed(() => {
-    const modules = (this.project()?.moduleIds ?? []).map((id) => MODULE_BY_ID[id]).filter(Boolean);
+    const modules = (this.project()?.moduleIds ?? [])
+      .map((id) => MODULE_BY_ID[id])
+      .filter(Boolean)
+      .map((m) => ({ path: m.path, label: m.label, icon: m.icon, soon: !m.built }));
     return [
       ...modules,
-      { path: 'actividad', label: 'Actividad', icon: 'activity' },
-      ...(this.canManage() ? [{ path: 'configuracion', label: 'Configuración', icon: 'settings' }] : []),
+      { path: 'actividad', label: 'Actividad', icon: 'activity', soon: false },
+      ...(this.canManage() ? [{ path: 'configuracion', label: 'Configuración', icon: 'settings', soon: false }] : []),
     ];
   });
 

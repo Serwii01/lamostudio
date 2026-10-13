@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { PROJECT_STATUS, Tone, isTaskDone } from '../../core/catalog';
+import { ProjectStatus } from '../../core/models';
 import { ActivityService } from '../../core/services/activity';
 import { ProjectService } from '../../core/services/projects';
 import { SessionService } from '../../core/services/session';
@@ -12,6 +13,7 @@ import { TaskRow } from '../../shared/task-row';
 import { Avatar } from '../../shared/ui/avatar';
 import { Badge, Empty, Progress } from '../../shared/ui/badge';
 import { Icon } from '../../shared/ui/icon';
+import { Enso } from '../../shared/ui/scribble';
 
 type Period = 'week' | 'month' | 'all';
 
@@ -20,6 +22,8 @@ const PERIODS: { id: Period; label: string; days: number }[] = [
   { id: 'month', label: 'Este mes', days: 30 },
   { id: 'all', label: 'Todo', days: Infinity },
 ];
+
+const WELCOME_KEY = 'lamo-studio:welcome-dismissed';
 
 interface Alert {
   tone: Tone;
@@ -31,142 +35,187 @@ interface Alert {
 @Component({
   selector: 'app-dashboard',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, ActivityFeed, TaskRow, Avatar, Badge, Empty, Icon, Progress],
+  imports: [RouterLink, ActivityFeed, TaskRow, Avatar, Badge, Empty, Enso, Icon, Progress],
   template: `
-    <header class="flex flex-wrap items-end justify-between gap-4">
+    <header class="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
       <div>
-        <p class="eyebrow">{{ session.workspace().cycle }} · {{ today }}</p>
-        <h1 class="page-title mt-1">{{ greeting() }}</h1>
+        <p class="eyebrow">{{ today }}</p>
+        <h1 class="page-title mt-2">{{ greeting() }}</h1>
+        <p class="hand mt-2 text-base">{{ summary() }}</p>
       </div>
-      <div class="flex gap-1.5" role="group" aria-label="Periodo">
+      <div class="flex gap-1.5" role="group" aria-label="Periodo de las entregas">
         @for (p of periods; track p.id) {
-          <button class="chip" [class.chip-active]="period() === p.id" (click)="period.set(p.id)">{{ p.label }}</button>
+          <button class="chip" [class.chip-active]="period() === p.id" [attr.aria-pressed]="period() === p.id" (click)="period.set(p.id)">
+            {{ p.label }}
+          </button>
         }
       </div>
     </header>
 
+    @if (showWelcome()) {
+      <section class="card relative mt-8 overflow-hidden p-6 sm:p-7">
+        <button class="btn btn-ghost absolute top-3 right-3 size-8 px-0" aria-label="Cerrar guía" (click)="dismissWelcome()">
+          <app-icon name="x" />
+        </button>
+        <p class="hand text-base">Te damos la bienvenida a Lamo ✿</p>
+        <h2 class="mt-1 font-display text-xl font-bold">Tres gestos y ya sabes usarlo</h2>
+        <ol class="mt-5 grid gap-5 sm:grid-cols-3">
+          <li class="flex gap-3">
+            <span class="grid size-9 shrink-0 place-items-center rounded-full border-2 border-shu font-hand text-lg font-semibold text-shu">1</span>
+            <span>
+              <span class="block font-medium">Crea un proyecto</span>
+              <span class="text-ink-soft">Elige una plantilla y se activan solo las pestañas que necesitas.</span>
+            </span>
+          </li>
+          <li class="flex gap-3">
+            <span class="grid size-9 shrink-0 place-items-center rounded-full border-2 border-shu font-hand text-lg font-semibold text-shu">2</span>
+            <span>
+              <span class="block font-medium">Apunta ideas al vuelo</span>
+              <span class="text-ink-soft">Pulsa <kbd class="kbd">N</kbd> en cualquier pantalla. Luego conviértelas en tareas.</span>
+            </span>
+          </li>
+          <li class="flex gap-3">
+            <span class="grid size-9 shrink-0 place-items-center rounded-full border-2 border-shu font-hand text-lg font-semibold text-shu">3</span>
+            <span>
+              <span class="block font-medium">Arrastra en el tablero</span>
+              <span class="text-ink-soft">Mueve tarjetas entre columnas para cambiar su estado.</span>
+            </span>
+          </li>
+        </ol>
+        <div class="mt-6 flex flex-wrap gap-2">
+          @if (session.can('project.create')) {
+            <a routerLink="/proyectos/nuevo" class="btn btn-accent"><app-icon name="plus" /> Crear mi primer proyecto</a>
+          }
+          <button class="btn btn-ghost" (click)="dismissWelcome()">Entendido</button>
+        </div>
+      </section>
+    }
+
     <!-- Métricas -->
-    <section class="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
-      <div class="card p-4">
+    <section class="mt-8 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5" aria-label="Resumen">
+      <a routerLink="/proyectos" class="card p-5 transition-colors hover:border-ink-faint">
         <p class="text-ink-soft">Proyectos activos</p>
-        <p class="mt-2 font-display text-3xl font-semibold">{{ projects.active().length }}</p>
-        <p class="mt-1 text-xs text-ink-faint">{{ projects.visible().length }} en total</p>
+        <p class="mt-3 font-display text-4xl font-bold">{{ projects.active().length }}</p>
+        <p class="hand mt-1 text-xs">de {{ projects.visible().length }} en total</p>
+      </a>
+      <div class="card p-5">
+        <p class="text-ink-soft">Para revisar</p>
+        <p class="mt-3 font-display text-4xl font-bold" [class.text-honey]="metrics().review">{{ metrics().review }}</p>
+        <p class="hand mt-1 text-xs">esperando feedback</p>
       </div>
-      <div class="card p-4">
-        <p class="text-ink-soft">Pendiente de revisión</p>
-        <p class="mt-2 font-display text-3xl font-semibold text-honey">{{ metrics().review }}</p>
-        <p class="mt-1 text-xs text-ink-faint">tareas esperando feedback</p>
-      </div>
-      <div class="card p-4">
+      <div class="card p-5">
         <p class="text-ink-soft">Vencidas</p>
-        <p class="mt-2 font-display text-3xl font-semibold" [class.text-coral]="metrics().overdue > 0">{{ metrics().overdue }}</p>
-        <p class="mt-1 text-xs text-ink-faint">{{ metrics().blocked }} {{ metrics().blocked === 1 ? 'bloqueada' : 'bloqueadas' }}</p>
+        <p class="mt-3 font-display text-4xl font-bold" [class.text-coral]="metrics().overdue">{{ metrics().overdue }}</p>
+        <p class="hand mt-1 text-xs">{{ metrics().blocked }} {{ metrics().blocked === 1 ? 'bloqueada' : 'bloqueadas' }}</p>
       </div>
       @if (session.can('team.viewLoad')) {
-        <div class="card p-4">
+        <a routerLink="/equipo" class="card p-5 transition-colors hover:border-ink-faint">
           <p class="text-ink-soft">Carga del equipo</p>
-          <p class="mt-2 font-display text-3xl font-semibold" [class.text-coral]="metrics().load > 1">
-            {{ percent(metrics().load) }}
-          </p>
-          <app-progress class="mt-2" [value]="metrics().load" [tone]="metrics().load > 1 ? 'coral' : metrics().load > 0.8 ? 'honey' : 'moss'" />
-          <p class="mt-1.5 text-xs text-ink-faint">{{ metrics().hours }} h de {{ metrics().capacity }} h esta semana</p>
-        </div>
+          <p class="mt-3 font-display text-4xl font-bold" [class.text-coral]="metrics().load > 1">{{ percent(metrics().load) }}</p>
+          <app-progress class="mt-2" [value]="metrics().load" [tone]="metrics().load > 1 ? 'coral' : metrics().load > 0.8 ? 'honey' : 'moss'" [height]="4" />
+          <p class="hand mt-1.5 text-xs">{{ metrics().hours }} h de {{ metrics().capacity }} h esta semana</p>
+        </a>
       }
-      <div class="card p-4" [class]="session.can('team.viewLoad') ? 'col-span-2 md:col-span-1' : ''">
-        <p class="text-ink-soft">Cumplimiento</p>
-        <p class="mt-2 font-display text-3xl font-semibold">{{ percent(metrics().completion) }}</p>
-        <app-progress class="mt-2" [value]="metrics().completion" />
-        <p class="mt-1.5 text-xs text-ink-faint">tareas completadas</p>
+      <div class="card col-span-2 flex items-center gap-4 p-5 md:col-span-1">
+        <app-enso [value]="metrics().completion" [size]="72" />
+        <div>
+          <p class="text-ink-soft">Completado</p>
+          <p class="hand mt-1 text-xs">{{ metrics().done }} de {{ metrics().total }} tareas</p>
+        </div>
       </div>
     </section>
 
-    <div class="mt-6 grid gap-6 lg:grid-cols-3">
+    <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
       <!-- Entregas críticas -->
       <section class="card overflow-hidden lg:col-span-2">
-        <header class="flex items-center justify-between border-b border-line px-4 py-3">
-          <h2 class="font-display text-lg font-semibold">Entregas críticas</h2>
+        <header class="flex items-baseline justify-between gap-3 px-5 pt-5 pb-3">
+          <div class="flex items-baseline gap-3">
+            <h2 class="card-title">Entregas críticas</h2>
+            <span class="hand hidden text-xs sm:inline">lo que no puede esperar</span>
+          </div>
           <a routerLink="/mis-tareas" class="text-xs text-ink-soft hover:text-ink">Mis tareas →</a>
         </header>
-        <div class="divide-y divide-line-soft">
+        <div class="divide-y divide-line/60 border-t border-line/60">
           @for (t of critical(); track t.id) {
             <app-task-row [task]="t" [showProject]="true" />
           } @empty {
-            <app-empty title="Nada urgente en este periodo" hint="No hay tareas abiertas con fecha en el rango seleccionado." />
+            <app-empty title="Nada urgente en este periodo" hint="Respira: no hay entregas abiertas en estas fechas." doodle="mountain" />
           }
         </div>
       </section>
 
       <!-- Alertas -->
-      <section class="card">
-        <header class="border-b border-line px-4 py-3">
-          <h2 class="font-display text-lg font-semibold">Alertas</h2>
+      <section class="card overflow-hidden">
+        <header class="flex items-baseline gap-3 px-5 pt-5 pb-3">
+          <h2 class="card-title">Atención</h2>
+          @if (alerts().length) {
+            <span class="count">{{ alerts().length }}</span>
+          }
         </header>
-        <ul class="divide-y divide-line-soft">
+        <ul class="divide-y divide-line/60 border-t border-line/60">
           @for (a of alerts(); track a.text) {
             <li>
-              <a [routerLink]="a.link" class="flex items-start gap-3 px-4 py-3 hover:bg-line-soft/60">
-                <span class="mt-0.5 grid size-7 shrink-0 place-items-center rounded-lg" [class]="alertClass(a.tone)">
-                  <app-icon [name]="a.icon" [size]="14" />
-                </span>
+              <a [routerLink]="a.link" class="flex items-start gap-3 px-5 py-3.5 transition-colors hover:bg-ink/[0.03]">
+                <span class="mt-1.5 size-2 shrink-0 rounded-full" [class]="dotClass(a.tone)"></span>
                 <span class="leading-snug">{{ a.text }}</span>
               </a>
             </li>
           } @empty {
-            <li><app-empty title="Todo en orden" hint="Sin retrasos, bloqueos ni sobrecargas." /></li>
+            <li><app-empty title="Todo en calma" hint="Sin retrasos, bloqueos ni sobrecargas." doodle="mountain" [compact]="true" /></li>
           }
         </ul>
       </section>
     </div>
 
-    <!-- Tabla de proyectos -->
+    <!-- Proyectos -->
     <section class="card mt-6 overflow-hidden">
-      <header class="flex items-center justify-between border-b border-line px-4 py-3">
-        <h2 class="font-display text-lg font-semibold">Proyectos</h2>
+      <header class="flex items-baseline justify-between px-5 pt-5 pb-3">
+        <h2 class="card-title">Proyectos en marcha</h2>
         <a routerLink="/proyectos" class="text-xs text-ink-soft hover:text-ink">Ver todos →</a>
       </header>
-      <div class="overflow-x-auto">
+      <div class="overflow-x-auto border-t border-line/60">
         <table class="w-full min-w-[720px] text-left">
           <thead class="text-xs text-ink-faint">
-            <tr class="border-b border-line-soft">
-              <th class="px-4 py-2.5 font-medium">Proyecto</th>
-              <th class="px-4 py-2.5 font-medium">Estado</th>
-              <th class="px-4 py-2.5 font-medium">Progreso</th>
-              <th class="px-4 py-2.5 font-medium">Responsable</th>
-              <th class="px-4 py-2.5 font-medium">Próxima fecha</th>
-              <th class="px-4 py-2.5 font-medium">Entrega</th>
+            <tr>
+              <th class="px-5 py-3 font-medium">Proyecto</th>
+              <th class="px-5 py-3 font-medium">Estado</th>
+              <th class="px-5 py-3 font-medium">Avance</th>
+              <th class="px-5 py-3 font-medium">Responsable</th>
+              <th class="px-5 py-3 font-medium">Próxima fecha</th>
+              <th class="px-5 py-3 font-medium">Entrega</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-line-soft">
+          <tbody class="divide-y divide-line/60">
             @for (p of projects.active(); track p.id) {
-              <tr class="hover:bg-line-soft/50">
-                <td class="px-4 py-3">
-                  <a [routerLink]="['/proyectos', p.id]" class="flex items-center gap-2.5">
-                    <span class="size-2.5 shrink-0 rounded-sm" [style.background]="p.cover"></span>
+              <tr class="transition-colors hover:bg-ink/[0.03]">
+                <td class="px-5 py-3">
+                  <a [routerLink]="['/proyectos', p.id]" class="flex items-center gap-3">
+                    <span class="size-3 shrink-0 rounded-full" [style.background]="p.cover"></span>
                     <span>
                       <span class="block font-medium hover:underline">{{ p.name }}</span>
                       <span class="block text-xs text-ink-faint">{{ p.client ?? 'Interno' }}</span>
                     </span>
                   </a>
                 </td>
-                <td class="px-4 py-3">
+                <td class="px-5 py-3">
                   <app-badge [tone]="statusOf(p.status).tone">{{ statusOf(p.status).label }}</app-badge>
                 </td>
-                <td class="px-4 py-3">
-                  <div class="flex items-center gap-2.5">
-                    <app-progress class="w-24" [value]="projects.statsFor(p.id).progress" />
-                    <span class="text-xs text-ink-soft tabular-nums">{{ percent(projects.statsFor(p.id).progress) }}</span>
-                  </div>
-                </td>
-                <td class="px-4 py-3">
+                <td class="px-5 py-3">
                   <span class="flex items-center gap-2">
-                    <app-avatar [member]="session.member(p.ownerId)" [size]="22" />
+                    <app-enso [value]="projects.statsFor(p.id).progress" [size]="30" [showLabel]="false" />
+                    <span class="font-hand text-sm tabular-nums">{{ percent(projects.statsFor(p.id).progress) }}</span>
+                  </span>
+                </td>
+                <td class="px-5 py-3">
+                  <span class="flex items-center gap-2">
+                    <app-avatar [member]="session.member(p.ownerId)" [size]="24" />
                     <span class="text-ink-soft">{{ session.member(p.ownerId)?.name }}</span>
                   </span>
                 </td>
-                <td class="px-4 py-3 text-ink-soft" [class.!text-coral]="isPast(projects.statsFor(p.id).nextDue)">
+                <td class="px-5 py-3 text-ink-soft" [class.!text-coral]="isPast(projects.statsFor(p.id).nextDue)">
                   {{ relative(projects.statsFor(p.id).nextDue) }}
                 </td>
-                <td class="px-4 py-3 text-ink-soft">{{ short(p.dueAt) }}</td>
+                <td class="px-5 py-3 text-ink-soft">{{ short(p.dueAt) }}</td>
               </tr>
             }
           </tbody>
@@ -174,8 +223,8 @@ interface Alert {
       </div>
     </section>
 
-    <section class="card mt-6 p-4">
-      <h2 class="mb-4 font-display text-lg font-semibold">Actividad reciente</h2>
+    <section class="card mt-6 p-5">
+      <h2 class="card-title mb-5">Qué ha pasado</h2>
       <app-activity-feed [entries]="recentActivity()" [showProject]="true" />
     </section>
   `,
@@ -189,6 +238,7 @@ export class Dashboard {
   protected readonly periods = PERIODS;
   protected readonly period = signal<Period>('week');
   protected readonly today = formatLongDate();
+  protected readonly showWelcome = signal(!readFlag(WELCOME_KEY));
 
   protected readonly greeting = computed(() => {
     const hour = new Date().getHours();
@@ -209,7 +259,8 @@ export class Dashboard {
     const load = this.tasks.weeklyLoad();
     const hours = team.reduce((sum, m) => sum + (load.get(m.id) ?? 0), 0);
     const capacity = team.reduce((sum, m) => sum + m.weeklyCapacity, 0);
-    const all = this.visibleTasks();
+    const total = this.visibleTasks().length;
+    const done = total - open.length;
     return {
       review: open.filter((t) => t.status === 'review').length,
       overdue: open.filter((t) => t.dueAt && daysFromToday(t.dueAt) < 0).length,
@@ -217,8 +268,24 @@ export class Dashboard {
       hours,
       capacity,
       load: capacity ? hours / capacity : 0,
-      completion: all.length ? (all.length - open.length) / all.length : 0,
+      total,
+      done,
+      completion: total ? done / total : 0,
     };
+  });
+
+  /** Frase a mano que resume el día del usuario actual. */
+  protected readonly summary = computed(() => {
+    const mine = this.openTasks().filter((t) => t.assigneeId === this.session.currentUserId() && t.dueAt);
+    const today = mine.filter((t) => daysFromToday(t.dueAt!) === 0).length;
+    const late = mine.filter((t) => daysFromToday(t.dueAt!) < 0).length;
+    if (!mine.length) return 'Hoy no tienes entregas asignadas. Buen momento para pensar.';
+    const parts = [];
+    if (late) parts.push(`${late} con retraso`);
+    if (today) parts.push(`${today} para hoy`);
+    return parts.length
+      ? `Tienes ${parts.join(' y ')}. Paso a paso.`
+      : 'Nada vence hoy. Ritmo tranquilo.';
   });
 
   protected readonly critical = computed(() => {
@@ -259,7 +326,7 @@ export class Dashboard {
         alerts.push({
           tone: 'plum',
           icon: 'users',
-          text: `${m.name} tiene ${hours} h planificadas esta semana para ${m.weeklyCapacity} h disponibles`,
+          text: `${firstName(m.name)} tiene ${hours} h planificadas para ${m.weeklyCapacity} h disponibles`,
           link: ['/equipo'],
         });
       }
@@ -275,14 +342,21 @@ export class Dashboard {
       .slice(0, 8);
   });
 
-  protected statusOf(status: keyof typeof PROJECT_STATUS) {
+  protected dismissWelcome(): void {
+    this.showWelcome.set(false);
+    try {
+      localStorage.setItem(WELCOME_KEY, '1');
+    } catch {
+      // Solo se oculta durante esta sesión.
+    }
+  }
+
+  protected statusOf(status: ProjectStatus) {
     return PROJECT_STATUS[status];
   }
 
-  protected alertClass(tone: Tone): string {
-    return { coral: 'bg-coral-soft text-coral', honey: 'bg-honey-soft text-honey', plum: 'bg-plum-soft text-plum' }[
-      tone as 'coral' | 'honey' | 'plum'
-    ];
+  protected dotClass(tone: Tone): string {
+    return { coral: 'bg-shu', honey: 'bg-honey', plum: 'bg-plum' }[tone as 'coral' | 'honey' | 'plum'];
   }
 
   protected percent(value: number): string {
@@ -299,5 +373,13 @@ export class Dashboard {
 
   protected isPast(iso?: string): boolean {
     return !!iso && daysFromToday(iso) < 0;
+  }
+}
+
+function readFlag(key: string): boolean {
+  try {
+    return localStorage.getItem(key) === '1';
+  } catch {
+    return false;
   }
 }

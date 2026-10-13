@@ -13,7 +13,7 @@ import { Icon } from '../../shared/ui/icon';
   imports: [ActivityFeed],
   template: `
     <section class="card max-w-3xl p-5">
-      <h2 class="mb-5 font-display text-lg font-semibold">Actividad del proyecto</h2>
+      <h2 class="mb-5 card-title">Actividad del proyecto</h2>
       <app-activity-feed [entries]="entries()" />
     </section>
   `,
@@ -37,11 +37,11 @@ export class ProjectActivity {
   template: `
     @if (module(); as m) {
       <section class="card mx-auto max-w-2xl p-8 text-center">
-        <span class="mx-auto grid size-14 place-items-center rounded-2xl bg-line-soft text-ink-soft">
+        <span class="mx-auto grid size-16 place-items-center rounded-full border-[1.5px] border-dashed border-ink/25 text-ink-soft">
           <app-icon [name]="m.icon" [size]="26" />
         </span>
-        <p class="eyebrow mt-5">{{ m.phase }} · Próximamente</p>
-        <h2 class="mt-1 font-display text-2xl font-semibold">{{ m.label }}</h2>
+        <p class="hand mt-5">{{ m.phase }} · en camino</p>
+        <h2 class="mt-1 font-display text-2xl font-bold">{{ m.label }}</h2>
         <p class="mx-auto mt-2 max-w-md text-ink-soft">{{ m.description }}</p>
         @if (!enabled()) {
           <p class="mt-4 rounded-lg bg-honey-soft px-3 py-2 text-honey">Este módulo no está activado en el proyecto.</p>

@@ -15,7 +15,7 @@ import {
 export type Tone = 'neutral' | 'ocean' | 'coral' | 'honey' | 'moss' | 'plum' | 'ink';
 
 export const TONE_BADGE: Record<Tone, string> = {
-  neutral: 'bg-line-soft text-ink-soft',
+  neutral: 'bg-ink/5 text-ink-soft',
   ocean: 'bg-ocean-soft text-ocean',
   coral: 'bg-coral-soft text-coral',
   honey: 'bg-honey-soft text-honey',
@@ -309,7 +309,7 @@ export const PROJECT_TEMPLATES: ProjectTemplate[] = [
     name: 'Branding / identidad',
     description: 'Moodboard, rutas creativas, revisiones y manual de marca.',
     icon: 'pen',
-    cover: '#7a4fb8',
+    cover: '#8a6aa3',
     modules: ['overview', 'tasks', 'kanban', 'whiteboard', 'files', 'deliverables', 'notes'],
   },
   {
@@ -317,7 +317,7 @@ export const PROJECT_TEMPLATES: ProjectTemplate[] = [
     name: 'Vídeo / videoclip',
     description: 'Preproducción, localizaciones, rodaje, shot list y postproducción.',
     icon: 'film',
-    cover: '#d9472f',
+    cover: '#ff3131',
     modules: ['overview', 'tasks', 'kanban', 'calendar', 'map', 'shot-list', 'deliverables', 'notes'],
   },
   {
@@ -325,7 +325,7 @@ export const PROJECT_TEMPLATES: ProjectTemplate[] = [
     name: 'Campaña social',
     description: 'Calendario editorial, piezas, copys y aprobaciones.',
     icon: 'calendar',
-    cover: '#2f6fc4',
+    cover: '#2d4c7c',
     modules: ['overview', 'tasks', 'calendar', 'notes', 'files', 'deliverables'],
   },
   {
@@ -333,7 +333,7 @@ export const PROJECT_TEMPLATES: ProjectTemplate[] = [
     name: 'Web / producto digital',
     description: 'Backlog, tablero, documentación e hitos.',
     icon: 'kanban',
-    cover: '#1c1a17',
+    cover: '#1e1d1b',
     modules: ['overview', 'tasks', 'kanban', 'notes', 'files'],
   },
   {
@@ -341,7 +341,7 @@ export const PROJECT_TEMPLATES: ProjectTemplate[] = [
     name: 'Evento cultural',
     description: 'Calendario, mapa, equipo, proveedores y presupuesto.',
     icon: 'pin',
-    cover: '#2b8a5e',
+    cover: '#6b8a4e',
     modules: ['overview', 'tasks', 'calendar', 'map', 'budget', 'files', 'notes'],
   },
   {
@@ -349,7 +349,7 @@ export const PROJECT_TEMPLATES: ProjectTemplate[] = [
     name: 'Proyecto libre',
     description: 'Empieza con lo básico y activa los módulos que necesites.',
     icon: 'plus',
-    cover: '#9a6400',
+    cover: '#b9860f',
     modules: ['overview', 'tasks', 'notes'],
   },
 ];
@@ -358,7 +358,8 @@ export const PROJECT_TYPE_LABEL = Object.fromEntries(
   PROJECT_TEMPLATES.map((t) => [t.type, t.name]),
 ) as Record<ProjectType, string>;
 
-export const COVER_SWATCHES = ['#d9472f', '#9a6400', '#2b8a5e', '#2f6fc4', '#7a4fb8', '#1c1a17'];
+/** Portadas: shu (rojo del logo), kincha, matcha, ai, fuji y sumi. */
+export const COVER_SWATCHES = ['#ff3131', '#b9860f', '#6b8a4e', '#2d4c7c', '#8a6aa3', '#1e1d1b'];
 
 // ---------------------------------------------------------------------------
 // Actividad

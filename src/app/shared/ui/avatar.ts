@@ -42,11 +42,11 @@ export class Avatar {
   host: { class: 'inline-flex items-center' },
   template: `
     @for (m of shown(); track m.id) {
-      <app-avatar [member]="m" [size]="size()" class="-ml-1.5 first:ml-0" />
+      <app-avatar [member]="m" [size]="size()" class="-ml-1 first:ml-0" />
     }
     @if (extra() > 0) {
       <span
-        class="-ml-1.5 inline-flex items-center justify-center rounded-full bg-line-soft text-[10px] font-semibold text-ink-soft ring-2 ring-surface"
+        class="-ml-1 inline-flex items-center justify-center rounded-full bg-ink/5 text-[10px] font-semibold text-ink-soft ring-2 ring-surface"
         [style.width.px]="size()"
         [style.height.px]="size()"
         >+{{ extra() }}</span

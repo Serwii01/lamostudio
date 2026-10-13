@@ -23,21 +23,21 @@ import { Icon } from '../../shared/ui/icon';
   host: { '(document:keydown.escape)': 'panel.close()' },
   template: `
     @if (task(); as t) {
-      <div class="fixed inset-0 z-50 bg-ink/20" (click)="panel.close()"></div>
+      <div class="fixed inset-0 z-50 bg-ink/25 backdrop-blur-[2px]" (click)="panel.close()"></div>
       <aside
-        class="fixed inset-y-0 right-0 z-50 flex w-full max-w-xl flex-col bg-surface shadow-2xl shadow-ink/10"
+        class="fixed inset-y-0 right-0 z-50 flex w-full max-w-xl flex-col bg-surface shadow-2xl shadow-ink/15 sm:rounded-l-3xl"
         role="dialog"
         aria-modal="true"
         aria-label="Detalle de tarea"
       >
-        <header class="flex h-14 shrink-0 items-center gap-2 border-b border-line px-5">
+        <header class="flex h-16 shrink-0 items-center gap-2 border-b border-line/60 px-6">
           @if (project(); as p) {
             <a
               [routerLink]="['/proyectos', p.id]"
               class="flex min-w-0 items-center gap-2 text-ink-soft hover:text-ink"
               (click)="panel.close()"
             >
-              <span class="size-2.5 shrink-0 rounded-sm" [style.background]="p.cover"></span>
+              <span class="size-2.5 shrink-0 rounded-full" [style.background]="p.cover"></span>
               <span class="truncate">{{ p.name }}</span>
             </a>
           }
@@ -49,9 +49,9 @@ import { Icon } from '../../shared/ui/icon';
           </div>
         </header>
 
-        <div class="flex-1 overflow-y-auto px-5 py-5">
+        <div class="flex-1 overflow-y-auto px-6 py-6">
           <textarea
-            class="w-full resize-none rounded-md border border-transparent bg-transparent font-display text-2xl leading-tight font-semibold hover:border-line focus:border-line focus:outline-none disabled:hover:border-transparent"
+            class="w-full resize-none rounded-md border border-transparent bg-transparent font-display text-2xl leading-tight font-bold hover:border-line focus:border-line focus:outline-none disabled:hover:border-transparent"
             rows="2"
             aria-label="Título"
             [value]="t.title"
@@ -167,7 +167,7 @@ import { Icon } from '../../shared/ui/icon';
             </div>
             <ul class="space-y-1">
               @for (s of t.subtasks; track s.id) {
-                <li class="group flex items-center gap-2.5 rounded-md px-1 py-1 hover:bg-line-soft/60">
+                <li class="group flex items-center gap-2.5 rounded-md px-1 py-1 hover:bg-ink/[0.03]">
                   <input
                     type="checkbox"
                     class="size-4 cursor-pointer accent-moss"

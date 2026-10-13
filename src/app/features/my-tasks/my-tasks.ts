@@ -22,8 +22,8 @@ interface Group {
     <header class="flex flex-wrap items-end justify-between gap-4">
       <div>
         <p class="eyebrow">Todos los proyectos</p>
-        <h1 class="page-title mt-1">Mis tareas</h1>
-        <p class="mt-1 text-ink-soft">{{ openCount() }} abiertas asignadas a {{ session.currentUser().name }}</p>
+        <h1 class="page-title mt-2">Mis tareas</h1>
+        <p class="hand mt-2 text-base">{{ openCount() }} abiertas a tu nombre, ordenadas por fecha.</p>
       </div>
       <label class="flex cursor-pointer items-center gap-2 text-ink-soft">
         <input type="checkbox" class="size-4 accent-ink" [checked]="showDone()" (change)="showDone.set(!showDone())" />
@@ -34,11 +34,11 @@ interface Group {
     <div class="mt-6 space-y-6">
       @for (g of groups(); track g.id) {
         <section class="card overflow-hidden">
-          <h2 class="flex items-center gap-2 border-b border-line px-4 py-2.5 font-medium">
+          <h2 class="flex items-center gap-2 border-b border-line/60 px-5 py-3.5 font-display font-bold">
             {{ g.label }}
-            <span class="rounded-full bg-line-soft px-2 text-xs text-ink-soft">{{ g.tasks.length }}</span>
+            <span class="count">{{ g.tasks.length }}</span>
           </h2>
-          <div class="divide-y divide-line-soft">
+          <div class="divide-y divide-line/60">
             @for (t of g.tasks; track t.id) {
               <app-task-row [task]="t" [showProject]="true" />
             }
@@ -46,7 +46,7 @@ interface Group {
         </section>
       } @empty {
         <div class="card">
-          <app-empty title="No tienes tareas asignadas" hint="Cuando alguien te asigne una tarea aparecerá aquí, agrupada por fecha." />
+          <app-empty title="No tienes tareas asignadas" hint="Cuando alguien te asigne una tarea aparecerá aquí, agrupada por fecha." doodle="mountain" />
         </div>
       }
     </div>

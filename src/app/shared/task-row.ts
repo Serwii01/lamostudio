@@ -17,7 +17,7 @@ import { Icon } from './ui/icon';
   host: { class: 'block' },
   template: `
     <div
-      class="group flex cursor-pointer items-center gap-3 px-3 py-2.5 hover:bg-line-soft/60"
+      class="group flex cursor-pointer items-center gap-3 px-5 py-3 transition-colors hover:bg-ink/[0.03] focus-visible:bg-ink/[0.04]"
       role="button"
       tabindex="0"
       (click)="panel.open(task().id)"
@@ -25,13 +25,13 @@ import { Icon } from './ui/icon';
     >
       <button
         type="button"
-        class="grid size-5 shrink-0 cursor-pointer place-items-center rounded-md border transition-colors disabled:cursor-default"
-        [class]="done() ? 'border-moss bg-moss text-white' : 'border-line text-transparent hover:border-ink-faint hover:text-ink-faint'"
+        class="grid size-[22px] shrink-0 cursor-pointer place-items-center rounded-full border-[1.5px] transition-colors disabled:cursor-default"
+        [class]="done() ? 'border-ink/30 text-shu' : 'border-ink/30 text-transparent hover:border-ink hover:text-ink/30'"
         [disabled]="!canEdit()"
         [attr.aria-label]="done() ? 'Marcar como pendiente' : 'Marcar como hecha'"
         (click)="$event.stopPropagation(); tasks.toggleDone(task())"
       >
-        <app-icon name="check" [size]="13" [stroke]="2.5" />
+        <app-icon name="check-hand" [size]="20" [stroke]="2.6" class="-mt-1 ml-1" />
       </button>
 
       <div class="min-w-0 flex-1">
@@ -46,14 +46,14 @@ import { Icon } from './ui/icon';
         </div>
         @if (showProject() && project(); as p) {
           <div class="mt-0.5 flex items-center gap-1.5 text-xs text-ink-faint">
-            <span class="size-2 rounded-sm" [style.background]="p.cover"></span>{{ p.name }}
+            <span class="size-2 rounded-full" [style.background]="p.cover"></span>{{ p.name }}
           </div>
         }
       </div>
 
       <div class="hidden items-center gap-1 lg:flex">
         @for (tag of task().tags.slice(0, 2); track tag) {
-          <span class="rounded bg-line-soft px-1.5 py-0.5 text-[11px] text-ink-soft">{{ tag }}</span>
+          <span class="font-hand text-xs text-ink-faint">#{{ tag }}</span>
         }
       </div>
       @if (task().comments.length) {

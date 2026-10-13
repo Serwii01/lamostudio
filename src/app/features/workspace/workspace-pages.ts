@@ -19,8 +19,8 @@ import { Icon } from '../../shared/ui/icon';
   template: `
     <header>
       <p class="eyebrow">{{ session.workspace().name }}</p>
-      <h1 class="page-title mt-1">Equipo</h1>
-      <p class="mt-1 text-ink-soft">Carga calculada con las horas estimadas de tareas abiertas que vencen en los próximos 7 días.</p>
+      <h1 class="page-title mt-2">Equipo</h1>
+      <p class="hand mt-2 text-base">Carga calculada con las horas estimadas de tareas abiertas que vencen en los próximos 7 días.</p>
     </header>
 
     <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -48,11 +48,11 @@ import { Icon } from '../../shared/ui/icon';
             <p class="mt-5 text-ink-faint">Colaborador externo: sin capacidad planificable.</p>
           }
           <dl class="mt-4 grid grid-cols-2 gap-2 text-center">
-            <div class="rounded-lg bg-line-soft/70 py-2">
+            <div class="rounded-lg bg-ink/[0.04] py-2">
               <dt class="text-xs text-ink-soft">Tareas abiertas</dt>
               <dd class="font-semibold">{{ row.open }}</dd>
             </div>
-            <div class="rounded-lg bg-line-soft/70 py-2">
+            <div class="rounded-lg bg-ink/[0.04] py-2">
               <dt class="text-xs text-ink-soft">Proyectos</dt>
               <dd class="font-semibold">{{ row.projects }}</dd>
             </div>
@@ -94,23 +94,23 @@ const SHOWN_PERMISSIONS: Permission[] = ['project.create', 'task.edit', 'task.co
   template: `
     <header>
       <p class="eyebrow">{{ session.workspace().name }}</p>
-      <h1 class="page-title mt-1">Configuración</h1>
+      <h1 class="page-title mt-2">Configuración</h1>
     </header>
 
-    <div class="mt-6 grid gap-6 lg:grid-cols-2">
+    <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
       <section class="card p-5">
-        <h2 class="font-display text-lg font-semibold">Roles y permisos</h2>
+        <h2 class="card-title">Roles y permisos</h2>
         <p class="mt-1 text-ink-soft">Permisos simples de la Fase 1. Cambia de usuario en la barra lateral para ver la app con cada rol.</p>
         <table class="mt-4 w-full text-left">
           <thead class="text-xs text-ink-faint">
-            <tr class="border-b border-line-soft">
+            <tr class="border-b border-line/60">
               <th class="py-2 font-medium">Rol</th>
               <th class="py-2 text-center font-medium">Crear proyectos</th>
               <th class="py-2 text-center font-medium">Editar tareas</th>
               <th class="py-2 text-center font-medium">Comentar</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-line-soft">
+          <tbody class="divide-y divide-line/60">
             @for (role of roles; track role) {
               <tr>
                 <td class="py-2.5">{{ roleLabel[role] }}</td>
@@ -130,7 +130,7 @@ const SHOWN_PERMISSIONS: Permission[] = ['project.create', 'task.edit', 'task.co
       </section>
 
       <section class="card p-5">
-        <h2 class="font-display text-lg font-semibold">Datos</h2>
+        <h2 class="card-title">Datos</h2>
         @if (admin.isDemo) {
           <p class="mt-1 text-ink-soft">
             Estás usando datos de demostración guardados en este navegador. Cuando se conecte Firebase, este apartado
@@ -169,11 +169,11 @@ export class WorkspaceSettings {
   imports: [RouterLink, Icon],
   template: `
     <section class="card mx-auto mt-4 max-w-2xl p-8 text-center">
-      <span class="mx-auto grid size-14 place-items-center rounded-2xl bg-line-soft text-ink-soft">
+      <span class="mx-auto grid size-16 place-items-center rounded-full border-[1.5px] border-dashed border-ink/25 text-ink-soft">
         <app-icon [name]="icon()" [size]="26" />
       </span>
-      <p class="eyebrow mt-5">{{ phase() }} · Próximamente</p>
-      <h1 class="mt-1 font-display text-2xl font-semibold">{{ heading() }}</h1>
+      <p class="hand mt-5">{{ phase() }} · en camino</p>
+      <h1 class="mt-1 font-display text-2xl font-bold">{{ heading() }}</h1>
       <p class="mx-auto mt-2 max-w-md text-ink-soft">{{ summary() }}</p>
       <a routerLink="/" class="btn btn-outline mt-6">Volver al inicio</a>
     </section>

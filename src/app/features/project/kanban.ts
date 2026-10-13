@@ -15,16 +15,17 @@ import { Icon } from '../../shared/ui/icon';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CdkDropListGroup, CdkDropList, CdkDrag, CdkDragPlaceholder, TaskQuickAdd, Avatar, Icon],
   template: `
-    <div cdkDropListGroup class="-mx-4 flex gap-3 overflow-x-auto px-4 pb-4 lg:-mx-8 lg:px-8">
+    <p class="hand mb-3 text-sm">Arrastra las tarjetas entre columnas para cambiar su estado ↓</p>
+    <div cdkDropListGroup class="-mx-4 flex gap-4 overflow-x-auto px-4 pb-6 lg:-mx-10 lg:px-10">
       @for (col of columns(); track col.status) {
-        <section class="flex w-72 shrink-0 flex-col rounded-xl border border-line bg-line-soft/60">
-          <header class="flex h-11 items-center gap-2 px-3">
+        <section class="flex w-72 shrink-0 flex-col rounded-2xl bg-ink/[0.045]">
+          <header class="flex h-12 items-center gap-2 px-4">
             <span class="size-2 rounded-full" [class]="fill[status[col.status].tone]"></span>
-            <h2 class="font-medium">{{ status[col.status].label }}</h2>
-            <span class="text-xs text-ink-faint">{{ col.tasks.length }}</span>
+            <h2 class="font-display font-bold">{{ status[col.status].label }}</h2>
+            <span class="count">{{ col.tasks.length }}</span>
             @if (canEdit()) {
               <button
-                class="btn btn-ghost btn-sm ml-auto px-1.5"
+                class="btn btn-ghost ml-auto size-7 px-0"
                 [attr.aria-label]="'Añadir tarea en ' + status[col.status].label"
                 (click)="addingTo.set(addingTo() === col.status ? null : col.status)"
               >
@@ -45,28 +46,34 @@ import { Icon } from '../../shared/ui/icon';
             [cdkDropListData]="col.status"
             [cdkDropListDisabled]="!canEdit()"
             (cdkDropListDropped)="drop($event)"
-            class="flex min-h-28 flex-1 flex-col gap-2 px-2 pb-2"
+            class="relative flex min-h-32 flex-1 flex-col gap-2.5 px-2.5 pb-3"
           >
+            @if (!col.tasks.length) {
+              <p class="hand pointer-events-none absolute inset-x-2.5 top-0 grid h-24 place-items-center rounded-xl border-[1.5px] border-dashed border-ink/15 text-xs text-ink-faint">
+                suelta aquí
+              </p>
+            }
             @for (t of col.tasks; track t.id) {
               <article
                 cdkDrag
                 [cdkDragData]="t"
-                class="card cursor-grab p-3 shadow-sm shadow-ink/[0.03] hover:border-ink-faint active:cursor-grabbing"
-                [class.border-l-4]="t.status === 'blocked'"
-                [class.!border-l-coral]="t.status === 'blocked'"
+                class="relative cursor-grab rounded-xl border border-line bg-surface p-3.5 transition-[border-color,box-shadow] hover:border-ink-faint hover:shadow-md hover:shadow-ink/5 active:cursor-grabbing"
                 tabindex="0"
                 (click)="panel.open(t.id)"
                 (keydown.enter)="panel.open(t.id)"
               >
-                <div *cdkDragPlaceholder class="h-20 rounded-xl border-2 border-dashed border-line bg-surface/50"></div>
+                <div *cdkDragPlaceholder class="h-20 rounded-xl border-[1.5px] border-dashed border-shu/50 bg-shu/5"></div>
+                @if (t.status === 'blocked') {
+                  <span class="absolute top-3.5 right-3.5 size-2 rounded-full bg-shu" title="Bloqueada"></span>
+                }
                 @if (t.tags.length) {
-                  <div class="mb-2 flex flex-wrap gap-1">
+                  <div class="mb-1.5 flex flex-wrap gap-x-2">
                     @for (tag of t.tags.slice(0, 2); track tag) {
-                      <span class="rounded bg-line-soft px-1.5 py-0.5 text-[11px] text-ink-soft">{{ tag }}</span>
+                      <span class="font-hand text-xs text-ink-faint">#{{ tag }}</span>
                     }
                   </div>
                 }
-                <p class="leading-snug font-medium">{{ t.title }}</p>
+                <p class="pr-3 leading-snug font-medium">{{ t.title }}</p>
                 <div class="mt-3 flex items-center gap-2.5 text-xs text-ink-faint">
                   @if (t.priority === 'urgent' || t.priority === 'high') {
                     <span class="inline-flex items-center gap-1" [class]="priorityText(t)">

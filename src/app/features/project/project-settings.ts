@@ -41,9 +41,9 @@ function toDraft(project: Project | undefined): Draft {
     @if (!session.can('project.manage')) {
       <div class="card"><app-empty title="Sin permisos" hint="Solo producción, dirección o administración pueden configurar el proyecto." /></div>
     } @else if (project(); as p) {
-      <div class="grid gap-6 lg:grid-cols-5">
+      <div class="grid grid-cols-1 gap-6 lg:grid-cols-5">
         <form class="card space-y-4 p-5 lg:col-span-3" (ngSubmit)="save(p)">
-          <h2 class="font-display text-lg font-semibold">Datos generales</h2>
+          <h2 class="card-title">Datos generales</h2>
           <label class="block">
             <span class="label">Nombre</span>
             <input class="input" name="name" required [(ngModel)]="draft().name" />
@@ -92,7 +92,7 @@ function toDraft(project: Project | undefined): Draft {
               }
             </div>
           </div>
-          <div class="flex flex-wrap items-center justify-between gap-3 border-t border-line-soft pt-4">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-t border-line/60 pt-4">
             <button type="button" class="btn btn-danger" (click)="archive(p)">
               <app-icon name="bookmark" [size]="14" /> {{ p.status === 'archived' ? 'Desarchivar' : 'Archivar proyecto' }}
             </button>
@@ -102,11 +102,11 @@ function toDraft(project: Project | undefined): Draft {
 
         <div class="space-y-6 lg:col-span-2">
           <section class="card p-5">
-            <h2 class="font-display text-lg font-semibold">Módulos</h2>
+            <h2 class="card-title">Módulos</h2>
             <p class="mt-1 mb-3 text-ink-soft">Activa, oculta y ordena las pestañas del proyecto.</p>
             <ul class="space-y-1">
               @for (id of p.moduleIds; track id; let i = $index, last = $last) {
-                <li class="flex items-center gap-2 rounded-lg bg-line-soft/60 px-2 py-1.5">
+                <li class="flex items-center gap-2 rounded-lg bg-ink/[0.035] px-2 py-1.5">
                   <app-icon [name]="moduleById[id].icon" class="text-ink-soft" />
                   <span class="flex-1">{{ moduleById[id].label }}</span>
                   @if (id !== 'overview') {
@@ -138,7 +138,7 @@ function toDraft(project: Project | undefined): Draft {
           </section>
 
           <section class="card p-5">
-            <h2 class="font-display text-lg font-semibold">Miembros</h2>
+            <h2 class="card-title">Miembros</h2>
             <ul class="mt-3 space-y-2">
               @for (m of session.members(); track m.id) {
                 <li>

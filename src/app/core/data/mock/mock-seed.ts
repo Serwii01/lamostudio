@@ -19,12 +19,12 @@ export function createSeed(): DbState {
   const ws = 'ws_lamo';
 
   const members: Member[] = [
-    { id: 'u_lucia', name: 'Lucía Romero', role: 'owner', specialty: 'Dirección del estudio', color: '#d9472f', weeklyCapacity: 30 },
-    { id: 'u_marcos', name: 'Marcos Vidal', role: 'pm', specialty: 'Producción', color: '#2f6fc4', weeklyCapacity: 35 },
-    { id: 'u_irene', name: 'Irene Castro', role: 'collaborator', specialty: 'Diseño gráfico', color: '#7a4fb8', weeklyCapacity: 32 },
-    { id: 'u_diego', name: 'Diego Navarro', role: 'collaborator', specialty: 'Edición y color', color: '#2b8a5e', weeklyCapacity: 20 },
-    { id: 'u_paula', name: 'Paula Ortega', role: 'creative-director', specialty: 'Dirección creativa y foto', color: '#9a6400', weeklyCapacity: 25 },
-    { id: 'u_andres', name: 'Andrés Molina', role: 'client', specialty: 'Sonora Records', color: '#5f5850', weeklyCapacity: 0 },
+    { id: 'u_lucia', name: 'Lucía Romero', role: 'owner', specialty: 'Dirección del estudio', color: '#c8473b', weeklyCapacity: 30 },
+    { id: 'u_marcos', name: 'Marcos Vidal', role: 'pm', specialty: 'Producción', color: '#2d4c7c', weeklyCapacity: 35 },
+    { id: 'u_irene', name: 'Irene Castro', role: 'collaborator', specialty: 'Diseño gráfico', color: '#694b81', weeklyCapacity: 32 },
+    { id: 'u_diego', name: 'Diego Navarro', role: 'collaborator', specialty: 'Edición y color', color: '#4c6a37', weeklyCapacity: 20 },
+    { id: 'u_paula', name: 'Paula Ortega', role: 'creative-director', specialty: 'Dirección creativa y foto', color: '#8d5d00', weeklyCapacity: 25 },
+    { id: 'u_andres', name: 'Andrés Molina', role: 'client', specialty: 'Sonora Records', color: '#57544e', weeklyCapacity: 0 },
   ];
 
   const project = (p: Omit<Project, 'workspaceId' | 'createdAt' | 'updatedAt' | 'priority' | 'tags'> & Partial<Project>): Project => ({
@@ -47,7 +47,7 @@ export function createSeed(): DbState {
       status: 'production',
       priority: 'high',
       tags: ['audiovisual', 'música'],
-      cover: '#d9472f',
+      cover: '#ff3131',
       moduleIds: ['overview', 'tasks', 'kanban', 'calendar', 'map', 'shot-list', 'deliverables', 'notes'],
       memberIds: ['u_lucia', 'u_marcos', 'u_paula', 'u_diego', 'u_irene', 'u_andres'],
       ownerId: 'u_marcos',
@@ -63,7 +63,7 @@ export function createSeed(): DbState {
       status: 'review',
       priority: 'high',
       tags: ['branding', 'packaging'],
-      cover: '#9a6400',
+      cover: '#b9860f',
       moduleIds: ['overview', 'tasks', 'kanban', 'whiteboard', 'files', 'deliverables', 'notes'],
       memberIds: ['u_lucia', 'u_irene', 'u_paula'],
       ownerId: 'u_lucia',
@@ -78,7 +78,7 @@ export function createSeed(): DbState {
       type: 'campaign',
       status: 'planning',
       tags: ['social', 'editorial'],
-      cover: '#2f6fc4',
+      cover: '#2d4c7c',
       moduleIds: ['overview', 'tasks', 'kanban', 'calendar', 'notes', 'files', 'deliverables'],
       memberIds: ['u_lucia', 'u_marcos', 'u_paula', 'u_irene'],
       ownerId: 'u_marcos',
@@ -93,7 +93,7 @@ export function createSeed(): DbState {
       type: 'event',
       status: 'planning',
       tags: ['evento', 'cultura'],
-      cover: '#2b8a5e',
+      cover: '#6b8a4e',
       moduleIds: ['overview', 'tasks', 'kanban', 'calendar', 'map', 'budget', 'files', 'notes'],
       memberIds: ['u_lucia', 'u_marcos', 'u_paula', 'u_irene'],
       ownerId: 'u_marcos',
@@ -107,7 +107,7 @@ export function createSeed(): DbState {
       type: 'web',
       status: 'changes',
       tags: ['interno', 'web'],
-      cover: '#1c1a17',
+      cover: '#1e1d1b',
       moduleIds: ['overview', 'tasks', 'kanban', 'notes', 'files'],
       memberIds: ['u_lucia', 'u_irene', 'u_diego', 'u_marcos'],
       ownerId: 'u_lucia',
@@ -122,7 +122,7 @@ export function createSeed(): DbState {
       type: 'campaign',
       status: 'closed',
       tags: ['editorial'],
-      cover: '#2f6fc4',
+      cover: '#2d4c7c',
       moduleIds: ['overview', 'tasks', 'notes'],
       memberIds: ['u_lucia', 'u_irene'],
       ownerId: 'u_lucia',
@@ -298,7 +298,7 @@ export function createSeed(): DbState {
   ];
 
   return {
-    version: 1,
+    version: 2,
     workspace: { id: ws, name: 'Lamo Studio', cycle: 'Temporada otoño 2026' },
     members,
     projects,

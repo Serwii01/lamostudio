@@ -3,7 +3,7 @@ import { ActivityEntry, Member, Project, QuickNote, Task, Workspace } from '../.
 import { createSeed } from './mock-seed';
 
 export interface DbState {
-  version: 1;
+  version: 2;
   workspace: Workspace;
   members: Member[];
   projects: Project[];
@@ -48,7 +48,7 @@ function loadState(): DbState {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as DbState;
-      if (parsed.version === 1) return parsed;
+      if (parsed.version === 2) return parsed;
     }
   } catch {
     // Datos corruptos o almacenamiento bloqueado: se vuelve a la semilla.

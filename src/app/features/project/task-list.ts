@@ -49,12 +49,12 @@ const VIEWS: { id: View; label: string; test: (t: Task, userId: string) => boole
     <div class="mt-4 space-y-4">
       @for (g of groups(); track g.status) {
         <section class="card overflow-hidden">
-          <h2 class="flex items-center gap-2 border-b border-line px-4 py-2.5 font-medium">
+          <h2 class="flex items-center gap-2 border-b border-line/60 px-5 py-3.5 font-display font-bold">
             <span class="size-2 rounded-full" [class]="fill[status[g.status].tone]"></span>
             {{ status[g.status].label }}
-            <span class="rounded-full bg-line-soft px-2 text-xs text-ink-soft">{{ g.tasks.length }}</span>
+            <span class="count">{{ g.tasks.length }}</span>
           </h2>
-          <div class="divide-y divide-line-soft">
+          <div class="divide-y divide-line/60">
             @for (t of g.tasks; track t.id) {
               <app-task-row [task]="t" />
             }

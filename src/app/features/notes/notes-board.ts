@@ -32,17 +32,17 @@ const VISIBILITY_LABEL: Record<NoteVisibility, string> = {
     @if (!projectId()) {
       <header class="mb-6">
         <p class="eyebrow">Captura sin fricción</p>
-        <h1 class="page-title mt-1">Notas</h1>
-        <p class="mt-1 text-ink-soft">Ideas, actas y recordatorios. Pulsa <kbd class="rounded border border-line bg-surface px-1.5 text-xs">N</kbd> en cualquier pantalla para crear una.</p>
+        <h1 class="page-title mt-2">Notas</h1>
+        <p class="hand mt-2 text-base">Ideas, actas y recordatorios. Pulsa <kbd class="rounded border border-line bg-surface px-1.5 text-xs">N</kbd> en cualquier pantalla para crear una.</p>
       </header>
     }
 
-    <div class="grid gap-6 lg:grid-cols-[20rem_1fr]">
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-[20rem_1fr]">
       @if (session.can('note.create')) {
         <form class="card h-fit space-y-3 p-4 lg:sticky lg:top-20" (ngSubmit)="create()">
           <h2 class="font-medium">Nueva nota</h2>
           <input class="input" name="title" placeholder="Título (opcional)" [(ngModel)]="title" autocomplete="off" />
-          <textarea class="input min-h-28" name="content" placeholder="Escribe aquí…" [(ngModel)]="content"></textarea>
+          <textarea class="input min-h-28 font-hand text-[15px]" name="content" placeholder="Escribe aquí…" [(ngModel)]="content"></textarea>
           @if (!projectId()) {
             <select class="input" name="project" aria-label="Proyecto" [(ngModel)]="targetProject">
               <option value="">Sin proyecto</option>
@@ -74,13 +74,16 @@ const VISIBILITY_LABEL: Record<NoteVisibility, string> = {
 
         <div class="columns-1 gap-4 md:columns-2 2xl:columns-3">
           @for (n of filtered(); track n.id) {
-            <article class="card mb-4 break-inside-avoid p-4" [class.!border-honey]="n.pinned" [class.bg-honey-soft/30]="n.pinned">
+            <article class="card relative mb-5 break-inside-avoid p-5 transition-colors hover:border-ink-faint">
+              @if (n.pinned) {
+                <span class="absolute -top-1.5 left-6 size-3 rounded-full bg-shu ring-4 ring-paper" title="Fijada"></span>
+              }
               <div class="flex items-start gap-2">
-                <h3 class="flex-1 font-medium leading-snug">{{ n.title || 'Sin título' }}</h3>
+                <h3 class="flex-1 font-display leading-snug font-bold">{{ n.title || 'Sin título' }}</h3>
                 @if (canEdit(n)) {
                   <button
                     class="btn btn-ghost btn-sm px-1.5"
-                    [class.!text-honey]="n.pinned"
+                    [class.!text-shu]="n.pinned"
                     [attr.aria-label]="n.pinned ? 'Desfijar' : 'Fijar'"
                     (click)="notes.update(n, { pinned: !n.pinned })"
                   >
@@ -90,13 +93,13 @@ const VISIBILITY_LABEL: Record<NoteVisibility, string> = {
               </div>
 
               @if (editingId() === n.id) {
-                <textarea class="input mt-2 min-h-28" [value]="n.content" #editor></textarea>
+                <textarea class="input mt-2 min-h-28 font-hand text-[15px]" [value]="n.content" #editor></textarea>
                 <div class="mt-2 flex justify-end gap-2">
                   <button class="btn btn-ghost btn-sm" (click)="editingId.set(null)">Cancelar</button>
                   <button class="btn btn-primary btn-sm" (click)="saveEdit(n, editor.value)">Guardar</button>
                 </div>
               } @else {
-                <p class="mt-1.5 whitespace-pre-line text-ink-soft">{{ n.content }}</p>
+                <p class="mt-2 font-hand text-[15px] leading-relaxed whitespace-pre-line text-ink">{{ n.content }}</p>
               }
 
               <div class="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-faint">
@@ -108,7 +111,7 @@ const VISIBILITY_LABEL: Record<NoteVisibility, string> = {
                 <span class="inline-flex items-center gap-1"><app-icon [name]="n.visibility === 'private' ? 'lock' : 'eye'" [size]="12" />{{ visibilityLabel[n.visibility] }}</span>
                 @if (!projectId() && projects.byId(n.projectId); as p) {
                   <a [routerLink]="['/proyectos', p.id]" class="inline-flex items-center gap-1 hover:text-ink">
-                    <span class="size-2 rounded-sm" [style.background]="p.cover"></span>{{ p.name }}
+                    <span class="size-2 rounded-full" [style.background]="p.cover"></span>{{ p.name }}
                   </a>
                 }
               </div>
@@ -120,7 +123,7 @@ const VISIBILITY_LABEL: Record<NoteVisibility, string> = {
               }
 
               @if (canEdit(n) && editingId() !== n.id) {
-                <div class="mt-3 flex flex-wrap items-center gap-1 border-t border-line-soft pt-2.5">
+                <div class="mt-3 flex flex-wrap items-center gap-1 border-t border-line/60 pt-2.5">
                   @if (!n.linkedTaskId && session.can('task.edit')) {
                     @if (convertingId() === n.id) {
                       <select class="input h-7 flex-1 text-xs" aria-label="Proyecto de destino" #target>
@@ -143,7 +146,7 @@ const VISIBILITY_LABEL: Record<NoteVisibility, string> = {
             </article>
           } @empty {
             <div class="card">
-              <app-empty title="No hay notas" hint="Las ideas que captures aparecerán aquí." />
+              <app-empty title="No hay notas" hint="Las ideas que captures aparecerán aquí." doodle="paper" />
             </div>
           }
         </div>

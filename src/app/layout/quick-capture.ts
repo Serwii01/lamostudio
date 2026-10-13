@@ -14,9 +14,9 @@ import { Icon } from '../shared/ui/icon';
   imports: [FormsModule, Icon],
   host: { '(document:keydown.escape)': 'capture.close()' },
   template: `
-    <div class="fixed inset-0 z-50 flex items-start justify-center bg-ink/25 px-4 pt-[12vh]" (click)="capture.close()">
+    <div class="fixed inset-0 z-50 flex items-start justify-center bg-ink/30 px-4 pt-[12vh] backdrop-blur-[2px]" (click)="capture.close()">
       <form
-        class="card w-full max-w-lg p-5 shadow-2xl shadow-ink/10"
+        class="card w-full max-w-lg p-6 shadow-2xl shadow-ink/15"
         role="dialog"
         aria-modal="true"
         aria-labelledby="quick-capture-title"
@@ -24,7 +24,7 @@ import { Icon } from '../shared/ui/icon';
         (ngSubmit)="save()"
       >
         <div class="mb-3 flex items-center justify-between">
-          <h2 id="quick-capture-title" class="font-display text-lg font-semibold">Nota rápida</h2>
+          <h2 id="quick-capture-title" class="card-title">Nota rápida</h2>
           <button type="button" class="btn btn-ghost btn-sm" aria-label="Cerrar" (click)="capture.close()">
             <app-icon name="x" />
           </button>
@@ -33,7 +33,7 @@ import { Icon } from '../shared/ui/icon';
         <input class="input mb-2 font-medium" name="title" placeholder="Título (opcional)" [(ngModel)]="title" autocomplete="off" />
         <textarea
           #contentField
-          class="input min-h-32 resize-y"
+          class="input min-h-36 resize-y font-hand text-base"
           name="content"
           placeholder="Escribe una idea, un acuerdo de reunión, un recordatorio…"
           [(ngModel)]="content"
