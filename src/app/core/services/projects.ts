@@ -1,10 +1,11 @@
 import { Injectable, computed, inject } from '@angular/core';
 import { INACTIVE_PROJECT_STATUSES, PROJECT_STATUS, isTaskDone } from '../catalog';
 import { Id, IsoDate, Project } from '../models';
-import { NewProject, ProjectPatch, ProjectRepository, TaskRepository } from '../data/repositories';
+import { NewProject, ProjectPatch, ProjectRepository } from '../data/repositories';
 import { daysFromToday } from '../utils/dates';
 import { ActivityService } from './activity';
 import { SessionService } from './session';
+import { TaskService } from './tasks';
 
 export interface ProjectStats {
   total: number;
@@ -23,7 +24,7 @@ const EMPTY_STATS: ProjectStats = { total: 0, done: 0, open: 0, overdue: 0, bloc
 @Injectable({ providedIn: 'root' })
 export class ProjectService {
   private readonly repo = inject(ProjectRepository);
-  private readonly taskRepo = inject(TaskRepository);
+  private readonly tasks = inject(TaskService);
   private readonly session = inject(SessionService);
   private readonly activity = inject(ActivityService);
 
@@ -42,14 +43,14 @@ export class ProjectService {
 
   readonly stats = computed(() => {
     const map = new Map<Id, ProjectStats>();
-    for (const task of this.taskRepo.tasks()) {
+    for (const task of this.tasks.all()) {
       const s = map.get(task.projectId) ?? { ...EMPTY_STATS };
       s.total += 1;
       if (isTaskDone(task.status)) {
         s.done += 1;
       } else {
         s.open += 1;
-        if (task.status === 'blocked') s.blocked += 1;
+        if (task.blocked) s.blocked += 1;
         if (task.status === 'review') s.inReview += 1;
         if (task.dueAt) {
           if (daysFromToday(task.dueAt) < 0) s.overdue += 1;

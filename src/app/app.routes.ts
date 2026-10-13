@@ -55,6 +55,11 @@ export const routes: Routes = [
             loadComponent: () => import('./features/notes/notes-board').then((m) => m.NotesBoard),
           },
           {
+            path: 'archivos',
+            canActivate: [requireModule('files')],
+            loadComponent: () => import('./features/files/files-board').then((m) => m.FilesBoard),
+          },
+          {
             path: 'actividad',
             loadComponent: () => import('./features/project/project-pages').then((m) => m.ProjectActivity),
           },
@@ -106,12 +111,7 @@ export const routes: Routes = [
       {
         path: 'biblioteca',
         title: 'Biblioteca · Lamo Studio',
-        loadComponent: comingSoon,
-        data: {
-          heading: 'Biblioteca de activos',
-          icon: 'image',
-          summary: 'Imágenes, documentos y enlaces a Drive, Dropbox o Frame.io, organizados por proyecto y etiqueta.',
-        },
+        loadComponent: () => import('./features/files/files-board').then((m) => m.FilesBoard),
       },
       {
         path: 'clientes',

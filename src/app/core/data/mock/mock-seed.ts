@@ -1,5 +1,6 @@
 import {
   ActivityEntry,
+  FileAsset,
   Id,
   Member,
   Priority,
@@ -166,7 +167,9 @@ export function createSeed(): DbState {
     // Videoclip «Mareas»
     task('p_mareas', 'Cerrar guion técnico', 'done', 'high', 'u_paula', -10, ['preproducción']),
     task('p_mareas', 'Casting de figuración', 'done', 'medium', 'u_marcos', -6, ['preproducción']),
-    task('p_mareas', 'Solicitar permiso de rodaje en Plaza de España', 'blocked', 'urgent', 'u_marcos', 2, ['permisos'], {
+    task('p_mareas', 'Solicitar permiso de rodaje en Plaza de España', 'in-progress', 'urgent', 'u_marcos', 2, ['permisos'], {
+      blocked: true,
+      blockedReason: 'Esperando respuesta de la oficina de permisos',
       description: 'Pendiente de respuesta de la oficina de permisos del Ayuntamiento. Revisar restricciones de trípode y acceso de vehículo.',
       estimateHours: 3,
       comments: [
@@ -190,10 +193,10 @@ export function createSeed(): DbState {
 
     // Café Alameda
     task('p_alameda', 'Moodboard y referencias', 'done', 'medium', 'u_irene', -14, ['investigación']),
-    task('p_alameda', 'Propuestas de logotipo (3 rutas)', 'approved', 'high', 'u_irene', -5, ['logotipo'], { estimateHours: 12 }),
+    task('p_alameda', 'Propuestas de logotipo (3 rutas)', 'done', 'high', 'u_irene', -5, ['logotipo'], { estimateHours: 12 }),
     task('p_alameda', 'Sistema tipográfico', 'review', 'high', 'u_irene', 1, ['tipografía'], { estimateHours: 8 }),
     task('p_alameda', 'Paleta de color y accesibilidad', 'in-progress', 'medium', 'u_irene', 2, ['color'], { estimateHours: 6 }),
-    task('p_alameda', 'Aplicaciones: packaging de café', 'changes', 'high', 'u_irene', 3, ['packaging'], {
+    task('p_alameda', 'Aplicaciones: packaging de café', 'in-progress', 'high', 'u_irene', 3, ['packaging'], {
       estimateHours: 10,
       comments: [
         { id: 'c3', authorId: 'u_lucia', body: 'El cliente pide más calidez: tostados y crema en lugar del gris.', createdAt: hoursAgo(28) },
@@ -220,7 +223,9 @@ export function createSeed(): DbState {
     // Web portfolio
     task('p_web', 'Seleccionar proyectos destacados', 'done', 'medium', 'u_lucia', -12, ['contenido']),
     task('p_web', 'Maquetación de la home', 'in-progress', 'high', 'u_irene', -2, ['diseño'], { estimateHours: 12 }),
-    task('p_web', 'Textos de la sección Estudio', 'blocked', 'medium', 'u_lucia', -1, ['contenido'], {
+    task('p_web', 'Textos de la sección Estudio', 'todo', 'medium', 'u_lucia', -1, ['contenido'], {
+      blocked: true,
+      blockedReason: 'Faltan las fotos del equipo',
       description: 'Esperando las fotos del equipo para cerrar los textos.',
     }),
     task('p_web', 'Optimizar vídeos de portada', 'todo', 'medium', 'u_diego', 3, ['vídeo'], { estimateHours: 5 }),
@@ -288,17 +293,42 @@ export function createSeed(): DbState {
     entry(1, 'u_irene', 'task.status', 'p_mareas', 'tsk_7', 'Storyboard escenas 3–6', 'En revisión'),
     entry(6, 'u_lucia', 'task.commented', 'p_mareas', 'tsk_3', 'Solicitar permiso de rodaje en Plaza de España'),
     entry(9, 'u_irene', 'task.status', 'p_alameda', 'tsk_12', 'Sistema tipográfico', 'En revisión'),
-    entry(20, 'u_marcos', 'task.status', 'p_mareas', 'tsk_3', 'Solicitar permiso de rodaje en Plaza de España', 'Bloqueada'),
+    entry(20, 'u_marcos', 'task.blocked', 'p_mareas', 'tsk_3', 'Solicitar permiso de rodaje en Plaza de España', 'bloqueada'),
     entry(26, 'u_lucia', 'project.status', 'p_web', 'p_web', 'Web portfolio Lamo', 'Cambios solicitados'),
-    entry(28, 'u_lucia', 'task.status', 'p_alameda', 'tsk_14', 'Aplicaciones: packaging de café', 'Cambios'),
+    entry(28, 'u_lucia', 'task.commented', 'p_alameda', 'tsk_14', 'Aplicaciones: packaging de café'),
     entry(30, 'u_paula', 'note.created', 'p_mareas', 'note_1', 'Ideas para la escena del puente'),
     entry(48, 'u_marcos', 'task.created', 'p_atlas', 'tsk_19', 'Sesión de fotos de novedades'),
-    entry(72, 'u_lucia', 'task.status', 'p_alameda', 'tsk_11', 'Propuestas de logotipo (3 rutas)', 'Aprobada'),
+    entry(72, 'u_lucia', 'task.status', 'p_alameda', 'tsk_11', 'Propuestas de logotipo (3 rutas)', 'Hecha'),
+    entry(4, 'u_paula', 'file.linked', 'p_mareas', 'file_2', 'Fotos de scouting — Triana'),
     entry(120, 'u_marcos', 'project.created', 'p_atlas', 'p_atlas', 'Campaña otoño — Librería Atlas'),
   ];
 
+  const link = (
+    id: Id,
+    projectId: Id,
+    name: string,
+    url: string,
+    provider: string,
+    uploadedBy: Id,
+    hours: number,
+    taskId?: Id,
+  ): FileAsset => ({
+    id, workspaceId: ws, projectId, taskId, name, kind: 'link', url, provider, uploadedBy, createdAt: hoursAgo(hours),
+  });
+
+  // Enlaces de ejemplo (direcciones ficticias): los brutos pesados viven fuera de la app.
+  const files: FileAsset[] = [
+    link('file_1', 'p_mareas', 'Maqueta del single «Mareas»', 'https://drive.google.com/file/d/ejemplo-maqueta', 'Google Drive', 'u_marcos', 60),
+    link('file_2', 'p_mareas', 'Fotos de scouting — Triana', 'https://www.dropbox.com/sh/ejemplo-scouting', 'Dropbox', 'u_paula', 4, 'tsk_4'),
+    link('file_3', 'p_mareas', 'Referencia de ritmo de montaje', 'https://vimeo.com/000000000', 'Vimeo', 'u_diego', 90),
+    link('file_4', 'p_alameda', 'Revisión packaging v2', 'https://app.frame.io/reviews/ejemplo-packaging', 'Frame.io', 'u_irene', 26, 'tsk_14'),
+    link('file_5', 'p_alameda', 'Sistema de marca (Figma)', 'https://www.figma.com/file/ejemplo-alameda', 'Figma', 'u_irene', 70),
+    link('file_6', 'p_luz', 'Plano del recorrido', 'https://drive.google.com/file/d/ejemplo-recorrido', 'Google Drive', 'u_marcos', 100),
+  ];
+
   return {
-    version: 2,
+    version: 3,
+    files,
     workspace: { id: ws, name: 'Lamo Studio', cycle: 'Temporada otoño 2026' },
     members,
     projects,

@@ -6,6 +6,8 @@ import { daysFromToday } from '../utils/dates';
 import { newId } from '../utils/text';
 import { ActivityService } from './activity';
 import { SessionService } from './session';
+import { ToastService } from './ui-state';
+import { PendingDeletes } from './undo';
 
 /** Horizonte (días) con el que se calcula la carga semanal. */
 const LOAD_HORIZON_DAYS = 7;
@@ -15,8 +17,9 @@ export class TaskService {
   private readonly repo = inject(TaskRepository);
   private readonly activity = inject(ActivityService);
   private readonly session = inject(SessionService);
+  private readonly deletes = new PendingDeletes<Task>(inject(ToastService));
 
-  readonly all = this.repo.tasks;
+  readonly all = this.deletes.filter(this.repo.tasks);
 
   /**
    * Horas estimadas de tareas abiertas que vencen en los próximos 7 días (o ya
@@ -54,6 +57,8 @@ export class TaskService {
     const context = { projectId: task.projectId };
     if (patch.status && patch.status !== task.status) {
       this.activity.log('task.status', target, { ...context, detail: TASK_STATUS[patch.status].label });
+    } else if ('blocked' in patch && !!patch.blocked !== !!task.blocked) {
+      this.activity.log('task.blocked', target, { ...context, detail: patch.blocked ? 'bloqueada' : 'desbloqueada' });
     } else if ('assigneeId' in patch && patch.assigneeId !== task.assigneeId) {
       const name = this.session.member(patch.assigneeId)?.name ?? 'nadie';
       this.activity.log('task.assigned', target, { ...context, detail: name });
@@ -96,8 +101,11 @@ export class TaskService {
     this.activity.log('task.commented', { id: task.id, label: task.title }, { projectId: task.projectId });
   }
 
-  async remove(task: Task): Promise<void> {
-    await this.repo.remove(task.id);
-    this.activity.log('task.deleted', { id: task.id, label: task.title }, { projectId: task.projectId });
+  /** Oculta la tarea y la borra pasados unos segundos si no se deshace. */
+  remove(task: Task): void {
+    this.deletes.remove(task, `Tarea «${task.title.slice(0, 40)}» eliminada`, async () => {
+      await this.repo.remove(task.id);
+      this.activity.log('task.deleted', { id: task.id, label: task.title }, { projectId: task.projectId });
+    });
   }
 }

@@ -1,5 +1,5 @@
 import { Signal } from '@angular/core';
-import { ActivityEntry, Id, Member, Project, QuickNote, Task, Workspace } from '../models';
+import { ActivityEntry, FileAsset, Id, Member, Project, QuickNote, Task, Workspace } from '../models';
 
 export type NewProject = Omit<Project, 'id' | 'workspaceId' | 'createdAt' | 'updatedAt'>;
 export type ProjectPatch = Partial<Omit<Project, 'id' | 'workspaceId' | 'createdAt' | 'updatedAt'>>;
@@ -13,6 +13,9 @@ export type NewNote = Pick<QuickNote, 'authorId' | 'content'> &
 export type NotePatch = Partial<Omit<QuickNote, 'id' | 'workspaceId' | 'authorId' | 'createdAt' | 'updatedAt'>>;
 
 export type NewActivity = Omit<ActivityEntry, 'id' | 'workspaceId' | 'createdAt'>;
+
+export type NewFile = Omit<FileAsset, 'id' | 'workspaceId' | 'createdAt'>;
+export type FilePatch = Partial<Pick<FileAsset, 'name' | 'taskId'>>;
 
 /*
  * Contratos de acceso a datos.
@@ -54,6 +57,16 @@ export abstract class NoteRepository {
 export abstract class ActivityRepository {
   abstract readonly entries: Signal<ActivityEntry[]>;
   abstract log(input: NewActivity): Promise<void>;
+}
+
+export abstract class FileRepository {
+  abstract readonly files: Signal<FileAsset[]>;
+  /** Guarda los metadatos y, si se pasa, el contenido binario del archivo. */
+  abstract create(input: NewFile, content?: Blob): Promise<FileAsset>;
+  abstract update(id: Id, patch: FilePatch): Promise<void>;
+  abstract remove(id: Id): Promise<void>;
+  /** URL para ver o descargar el contenido (enlace externo o URL temporal del binario). */
+  abstract contentUrl(id: Id): Promise<string | null>;
 }
 
 /** Operaciones de mantenimiento del entorno de demostración. */

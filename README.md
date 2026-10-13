@@ -28,9 +28,15 @@ Para ver la app con otro rol (producción, colaborador, cliente…), cambia de u
   entregas críticas por periodo, alertas de retraso, bloqueo y sobrecarga, tabla de proyectos y actividad.
 - **Proyectos** con 6 plantillas (branding, vídeo, campaña, web, evento, libre) que preactivan módulos.
 - **Resumen de proyecto**: progreso calculado desde las tareas, riesgos, próximas entregas, equipo y actividad.
-- **Tareas**: lista agrupada por estado con vistas «Mías», «Esta semana», «Sin responsable», «Bloqueadas»;
-  panel lateral con estado, responsable, fecha, prioridad, estimación, etiquetas, descripción, subtareas y comentarios.
+- **Tareas** con cuatro estados (Por hacer · En curso · En revisión · Hecha) y una marca independiente de
+  «bloqueada» con motivo. Lista con vistas «Mías», «Esta semana», «Sin responsable», «Bloqueadas»; panel
+  lateral con lo esencial a la vista y prioridad, estimación y etiquetas en «Más detalles».
 - **Tablero Kanban** con arrastrar y soltar (cambia estado y orden).
+- **Archivos**: pestaña por proyecto, Biblioteca global y adjuntos en cada tarea. Arrastrar y soltar o
+  elegir archivos (hasta 25 MB; se bloquean ejecutables), miniaturas de imágenes y vídeos, visor de imagen,
+  vídeo, audio y PDF, y enlaces a Google Drive, Dropbox, Frame.io, Vimeo, YouTube o Figma para brutos pesados.
+  En la demo el contenido se guarda en IndexedDB del navegador.
+- **Deshacer** al borrar tareas, notas y archivos, en lugar de diálogos de confirmación.
 - **Notas rápidas** (tecla `N` en cualquier pantalla), privadas o compartidas, convertibles en tarea.
 - **Actividad** registrada para cada acción relevante.
 - **Equipo** con capacidad semanal frente a horas planificadas.
@@ -74,7 +80,8 @@ Las pantallas solo dependen de los servicios, y los servicios solo de las clases
 ### Pasar a Firebase (o a una API Spring Boot)
 
 1. Crear `core/data/firebase/` con implementaciones de `WorkspaceRepository`, `ProjectRepository`,
-   `TaskRepository`, `NoteRepository` y `ActivityRepository`.
+   `TaskRepository`, `NoteRepository`, `ActivityRepository` y `FileRepository` (este último sobre
+   Firebase Storage, con reglas que limiten tamaño y tipo de archivo).
 2. Exponer un `provideFirebaseData()` equivalente a `provideMockData()`.
 3. Cambiar la línea correspondiente en `app.config.ts`.
 4. Sustituir el selector de usuario por Firebase Authentication en `SessionService`.
@@ -88,7 +95,8 @@ Las pantallas solo dependen de los servicios, y los servicios solo de las clases
 | 0 | Design tokens, layout, rutas, datos mock | Hecho |
 | 1 | Proyectos, plantillas, módulos, tareas, Kanban, notas, actividad, dashboard, roles simples | Hecho (sin backend) |
 | 1b | Firebase Auth + Firestore + reglas de seguridad, invitaciones a miembros | Siguiente |
-| 2 | Calendario, entregables con versiones y aprobación, archivos/enlaces, mapa (Leaflet + OSM), pizarra individual | Pendiente |
+| 2 | Archivos y enlaces | Hecho (almacenamiento local) |
+| 2b | Calendario, entregables con versiones y aprobación, mapa (Leaflet + OSM), pizarra individual | Pendiente |
 | 3 | Pizarra en tiempo real (Yjs), registro de horas, presupuesto, shot list y call sheet, permisos granulares | Pendiente |
 | 4 | Integraciones (Google Calendar, Drive, Frame.io, Slack), informes, portal de cliente | Pendiente |
 

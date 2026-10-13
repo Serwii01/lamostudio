@@ -1,7 +1,8 @@
 import { CdkDrag, CdkDragDrop, CdkDragPlaceholder, CdkDropList, CdkDropListGroup } from '@angular/cdk/drag-drop';
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
-import { PRIORITY, TASK_STATUS, TASK_STATUS_ORDER, TONE_FILL, TONE_TEXT } from '../../core/catalog';
+import { PRIORITY, TASK_STATUS, TASK_STATUS_ORDER, TONE_FILL, TONE_TEXT, isTaskDone } from '../../core/catalog';
 import { Task, TaskStatus } from '../../core/models';
+import { FileService } from '../../core/services/files';
 import { SessionService } from '../../core/services/session';
 import { TaskService } from '../../core/services/tasks';
 import { TaskPanelService } from '../../core/services/ui-state';
@@ -16,9 +17,9 @@ import { Icon } from '../../shared/ui/icon';
   imports: [CdkDropListGroup, CdkDropList, CdkDrag, CdkDragPlaceholder, TaskQuickAdd, Avatar, Icon],
   template: `
     <p class="hand mb-3 text-sm">Arrastra las tarjetas entre columnas para cambiar su estado ↓</p>
-    <div cdkDropListGroup class="-mx-4 flex gap-4 overflow-x-auto px-4 pb-6 lg:-mx-10 lg:px-10">
+    <div cdkDropListGroup class="-mx-4 flex gap-4 overflow-x-auto px-4 pb-6 lg:mx-0 lg:px-0">
       @for (col of columns(); track col.status) {
-        <section class="flex w-72 shrink-0 flex-col rounded-2xl bg-ink/[0.045]">
+        <section class="flex w-72 shrink-0 flex-col rounded-2xl bg-ink/[0.045] lg:w-auto lg:min-w-60 lg:flex-1">
           <header class="flex h-12 items-center gap-2 px-4">
             <span class="size-2 rounded-full" [class]="fill[status[col.status].tone]"></span>
             <h2 class="font-display font-bold">{{ status[col.status].label }}</h2>
@@ -49,7 +50,7 @@ import { Icon } from '../../shared/ui/icon';
             class="relative flex min-h-32 flex-1 flex-col gap-2.5 px-2.5 pb-3"
           >
             @if (!col.tasks.length) {
-              <p class="hand pointer-events-none absolute inset-x-2.5 top-0 grid h-24 place-items-center rounded-xl border-[1.5px] border-dashed border-ink/15 text-xs text-ink-faint">
+              <p class="hand pointer-events-none absolute inset-x-2.5 top-0 grid h-24 place-items-center rounded-xl border-[1.5px] border-dashed border-ink/15 text-sm text-ink-faint">
                 suelta aquí
               </p>
             }
@@ -63,25 +64,25 @@ import { Icon } from '../../shared/ui/icon';
                 (keydown.enter)="panel.open(t.id)"
               >
                 <div *cdkDragPlaceholder class="h-20 rounded-xl border-[1.5px] border-dashed border-shu/50 bg-shu/5"></div>
-                @if (t.status === 'blocked') {
-                  <span class="absolute top-3.5 right-3.5 size-2 rounded-full bg-shu" title="Bloqueada"></span>
+                @if (t.blocked) {
+                  <span class="absolute top-3.5 right-3.5 size-2 rounded-full bg-shu" [attr.title]="t.blockedReason ?? 'Bloqueada'"></span>
                 }
                 @if (t.tags.length) {
                   <div class="mb-1.5 flex flex-wrap gap-x-2">
                     @for (tag of t.tags.slice(0, 2); track tag) {
-                      <span class="font-hand text-xs text-ink-faint">#{{ tag }}</span>
+                      <span class="text-xs text-ink-faint">#{{ tag }}</span>
                     }
                   </div>
                 }
                 <p class="pr-3 leading-snug font-medium">{{ t.title }}</p>
-                <div class="mt-3 flex items-center gap-2.5 text-xs text-ink-faint">
+                <div class="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs whitespace-nowrap text-ink-faint">
                   @if (t.priority === 'urgent' || t.priority === 'high') {
                     <span class="inline-flex items-center gap-1" [class]="priorityText(t)">
                       <app-icon name="flag" [size]="12" />{{ priority[t.priority].label }}
                     </span>
                   }
-                  @if (t.status === 'blocked') {
-                    <app-icon name="lock" [size]="12" class="text-coral" />
+                  @if (t.blocked) {
+                    <span class="inline-flex items-center gap-1 text-coral"><app-icon name="lock" [size]="12" />bloqueada</span>
                   }
                   @if (t.dueAt) {
                     <span [class]="dueClass(t)">{{ relative(t.dueAt) }}</span>
@@ -90,6 +91,9 @@ import { Icon } from '../../shared/ui/icon';
                     <span class="inline-flex items-center gap-1">
                       <app-icon name="check-square" [size]="12" />{{ doneSubtasks(t) }}/{{ t.subtasks.length }}
                     </span>
+                  }
+                  @if (attachments(t); as n) {
+                    <span class="inline-flex items-center gap-1"><app-icon name="paperclip" [size]="12" />{{ n }}</span>
                   }
                   @if (t.comments.length) {
                     <span class="inline-flex items-center gap-1"><app-icon name="message" [size]="12" />{{ t.comments.length }}</span>
@@ -110,6 +114,7 @@ export class Kanban {
   protected readonly session = inject(SessionService);
   protected readonly panel = inject(TaskPanelService);
   private readonly tasks = inject(TaskService);
+  private readonly files = inject(FileService);
 
   protected readonly status = TASK_STATUS;
   protected readonly priority = PRIORITY;
@@ -132,11 +137,16 @@ export class Kanban {
     void this.tasks.move(task, target, ids);
   }
 
+  protected attachments(task: Task): number {
+    return this.files.countByTask().get(task.id) ?? 0;
+  }
+
   protected relative(iso: string): string {
     return relativeDue(iso);
   }
 
   protected dueClass(task: Task): string {
+    if (isTaskDone(task.status)) return '';
     const days = daysFromToday(task.dueAt!);
     if (days < 0) return 'font-medium text-coral';
     if (days === 0) return 'font-medium text-honey';

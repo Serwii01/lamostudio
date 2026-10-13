@@ -60,7 +60,7 @@ type Filter = 'active' | 'closed' | 'all';
             <div class="mt-auto pt-6">
               <div class="flex items-center gap-3">
                 <app-enso [value]="projects.statsFor(p.id).progress" [size]="44" />
-                <span class="hand text-xs">{{ projects.statsFor(p.id).done }} de {{ projects.statsFor(p.id).total }} tareas</span>
+                <span class="text-sm text-ink-soft">{{ projects.statsFor(p.id).done }} de {{ projects.statsFor(p.id).total }} tareas</span>
               </div>
               <div class="mt-4 flex items-center justify-between border-t border-line/60 pt-4">
                 <app-avatar-stack [members]="membersOf(p)" />

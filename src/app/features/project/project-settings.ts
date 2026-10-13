@@ -108,7 +108,12 @@ function toDraft(project: Project | undefined): Draft {
               @for (id of p.moduleIds; track id; let i = $index, last = $last) {
                 <li class="flex items-center gap-2 rounded-lg bg-ink/[0.035] px-2 py-1.5">
                   <app-icon [name]="moduleById[id].icon" class="text-ink-soft" />
-                  <span class="flex-1">{{ moduleById[id].label }}</span>
+                  <span class="flex-1">
+                    {{ moduleById[id].label }}
+                    @if (!moduleById[id].built) {
+                      <span class="text-xs text-ink-faint">· aparecerá al estar listo</span>
+                    }
+                  </span>
                   @if (id !== 'overview') {
                     <button type="button" class="btn btn-ghost btn-sm px-1.5" aria-label="Subir" [disabled]="i <= 1" (click)="moveModule(p, i, -1)">
                       <app-icon name="arrow-up" [size]="13" />
@@ -129,8 +134,17 @@ function toDraft(project: Project | undefined): Draft {
               <p class="eyebrow mt-4 mb-2">Disponibles</p>
               <div class="flex flex-wrap gap-2">
                 @for (m of available(); track m.id) {
-                  <button type="button" class="chip" (click)="toggleModule(p, m.id)">
+                  <button
+                    type="button"
+                    class="chip disabled:cursor-default disabled:opacity-50"
+                    [disabled]="!m.built"
+                    [attr.title]="m.built ? null : m.label + ' llegará en la ' + m.phase"
+                    (click)="toggleModule(p, m.id)"
+                  >
                     <app-icon name="plus" [size]="12" /> {{ m.label }}
+                    @if (!m.built) {
+                      <span class="text-ink-faint">· pronto</span>
+                    }
                   </button>
                 }
               </div>

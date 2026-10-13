@@ -81,14 +81,12 @@ export interface Project {
   updatedAt: IsoDate;
 }
 
-export type TaskStatus =
-  | 'todo'
-  | 'in-progress'
-  | 'blocked'
-  | 'review'
-  | 'changes'
-  | 'approved'
-  | 'done';
+/**
+ * Cuatro estados, uno por columna del tablero. «Bloqueada» es una marca aparte
+ * (una tarea puede estar en curso y bloqueada a la vez) y la aprobación con cliente
+ * vivirá en Entregables, que tienen su propio flujo de versiones.
+ */
+export type TaskStatus = 'todo' | 'in-progress' | 'review' | 'done';
 
 export interface Subtask {
   id: Id;
@@ -109,6 +107,9 @@ export interface Task {
   title: string;
   description?: string;
   status: TaskStatus;
+  /** Marca de bloqueo, independiente del estado. */
+  blocked?: boolean;
+  blockedReason?: string;
   priority: Priority;
   assigneeId?: Id;
   tags: string[];
@@ -151,8 +152,12 @@ export type ActivityVerb =
   | 'task.assigned'
   | 'task.commented'
   | 'task.deleted'
+  | 'task.blocked'
   | 'note.created'
-  | 'note.converted';
+  | 'note.converted'
+  | 'file.uploaded'
+  | 'file.linked'
+  | 'file.deleted';
 
 export interface ActivityEntry {
   id: Id;
@@ -163,5 +168,32 @@ export interface ActivityEntry {
   targetId: Id;
   targetLabel: string;
   detail?: string;
+  createdAt: IsoDate;
+}
+
+export type FileKind = 'image' | 'video' | 'audio' | 'pdf' | 'document' | 'link' | 'other';
+
+/**
+ * Archivo o enlace de un proyecto. El contenido binario se guarda aparte (IndexedDB
+ * en la demo, Firebase Storage más adelante); aquí solo hay metadatos ligeros.
+ */
+export interface FileAsset {
+  id: Id;
+  workspaceId: Id;
+  projectId: Id;
+  /** Tarea a la que está adjunto, si lo está. */
+  taskId?: Id;
+  name: string;
+  kind: FileKind;
+  mimeType?: string;
+  /** Tamaño en bytes (solo archivos subidos). */
+  size?: number;
+  /** Dirección externa (solo enlaces). */
+  url?: string;
+  /** Servicio del enlace: Google Drive, Frame.io, YouTube… */
+  provider?: string;
+  /** Miniatura pequeña como data URL, para no cargar el original en las cuadrículas. */
+  thumbnail?: string;
+  uploadedBy: Id;
   createdAt: IsoDate;
 }

@@ -70,15 +70,10 @@ export function requireModule(moduleId: ProjectModuleId): CanActivateFn {
               <a
                 [routerLink]="m.path"
                 routerLinkActive="is-active"
-                class="group relative -mb-px inline-flex h-11 items-center gap-1.5 px-3.5 whitespace-nowrap transition-colors hover:text-ink [&.is-active]:font-medium [&.is-active]:text-ink"
-                [class]="m.soon ? 'text-ink-faint/70' : 'text-ink-soft'"
-                [attr.title]="m.soon ? m.label + ' · próximamente' : null"
+                class="group relative -mb-px inline-flex h-11 items-center gap-1.5 px-3.5 whitespace-nowrap text-ink-soft transition-colors hover:text-ink [&.is-active]:font-medium [&.is-active]:text-ink"
               >
                 <app-icon [name]="m.icon" [size]="15" />
                 {{ m.label }}
-                @if (m.soon) {
-                  <span class="font-hand text-[10px]">pronto</span>
-                }
                 <svg class="absolute inset-x-2 -bottom-px h-1.5 opacity-0 group-[.is-active]:opacity-100" viewBox="0 0 60 6" preserveAspectRatio="none" aria-hidden="true">
                   <path d="M2 4c10-3 18 1 28-1s18-2 28 0" fill="none" class="stroke-shu" stroke-width="2.4" stroke-linecap="round" vector-effect="non-scaling-stroke" />
                 </svg>
@@ -120,16 +115,20 @@ export class ProjectShell {
 
   protected readonly canManage = computed(() => this.session.can('project.manage'));
 
-  /** Pestañas = módulos activos en el orden del proyecto + Actividad y Configuración. */
+  /**
+   * Pestañas = módulos activos y ya construidos, en el orden del proyecto, más
+   * Actividad y Configuración. Los módulos futuros activados por la plantilla
+   * aparecerán solos cuando existan.
+   */
   protected readonly tabs = computed(() => {
     const modules = (this.project()?.moduleIds ?? [])
       .map((id) => MODULE_BY_ID[id])
-      .filter(Boolean)
-      .map((m) => ({ path: m.path, label: m.label, icon: m.icon, soon: !m.built }));
+      .filter((m) => m?.built)
+      .map((m) => ({ path: m.path, label: m.label, icon: m.icon }));
     return [
       ...modules,
-      { path: 'actividad', label: 'Actividad', icon: 'activity', soon: false },
-      ...(this.canManage() ? [{ path: 'configuracion', label: 'Configuración', icon: 'settings', soon: false }] : []),
+      { path: 'actividad', label: 'Actividad', icon: 'activity' },
+      ...(this.canManage() ? [{ path: 'configuracion', label: 'Configuración', icon: 'settings' }] : []),
     ];
   });
 

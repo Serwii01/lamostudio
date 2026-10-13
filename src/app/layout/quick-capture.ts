@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, afterNextRender, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, afterNextRender, inject, linkedSignal, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NoteVisibility } from '../core/models';
@@ -41,9 +41,9 @@ import { Icon } from '../shared/ui/icon';
           (keydown.meta.enter)="save()"
         ></textarea>
 
-        <div class="mt-3 grid gap-3 sm:grid-cols-2">
-          <label>
-            <span class="label">Proyecto</span>
+        <div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <label class="flex-1">
+            <span class="sr-only">Proyecto</span>
             <select class="input" name="project" [(ngModel)]="projectId">
               <option value="">Sin proyecto</option>
               @for (p of projects.active(); track p.id) {
@@ -51,13 +51,9 @@ import { Icon } from '../shared/ui/icon';
               }
             </select>
           </label>
-          <label>
-            <span class="label">Visibilidad</span>
-            <select class="input" name="visibility" [(ngModel)]="visibility">
-              <option value="private">Solo yo</option>
-              <option value="project" [disabled]="!projectId()">Equipo del proyecto</option>
-              <option value="workspace">Todo el estudio</option>
-            </select>
+          <label class="flex cursor-pointer items-center gap-2 text-sm text-ink-soft">
+            <input type="checkbox" class="size-4 accent-ink" name="private" [(ngModel)]="privateNote" />
+            <app-icon name="lock" [size]="13" /> Solo para mí
           </label>
         </div>
 
@@ -85,7 +81,8 @@ export class QuickCapture {
   protected readonly content = signal('');
   /** Si se abre dentro de un proyecto, la nota se asocia a él por defecto. */
   protected readonly projectId = signal(this.router.url.match(/^\/proyectos\/([^/?]+)/)?.[1] ?? '');
-  protected readonly visibility = signal<NoteVisibility>(this.projectId() ? 'project' : 'private');
+  /** Privada por defecto si no hay proyecto; compartida con el equipo si lo hay. */
+  protected readonly privateNote = linkedSignal(() => !this.projectId());
 
   constructor() {
     if (this.projectId() === 'nuevo') this.projectId.set('');
@@ -96,7 +93,7 @@ export class QuickCapture {
     const content = this.content().trim();
     if (!content) return;
     const projectId = this.projectId() || undefined;
-    const visibility = !projectId && this.visibility() === 'project' ? 'private' : this.visibility();
+    const visibility: NoteVisibility = this.privateNote() ? 'private' : projectId ? 'project' : 'workspace';
     await this.notes.create({ content, title: this.title().trim() || undefined, projectId, visibility });
     this.toast.show('Nota guardada');
     this.capture.close();

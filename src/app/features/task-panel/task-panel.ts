@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { PRIORITY, PRIORITY_ORDER, TASK_STATUS, TASK_STATUS_ORDER, TONE_BADGE } from '../../core/catalog';
+import { PRIORITY, PRIORITY_ORDER, TASK_STATUS, TASK_STATUS_ORDER, TONE_FILL } from '../../core/catalog';
 import { Task } from '../../core/models';
 import { TaskPatch } from '../../core/data/repositories';
+import { FileService } from '../../core/services/files';
 import { NoteService } from '../../core/services/notes';
 import { ProjectService } from '../../core/services/projects';
 import { SessionService } from '../../core/services/session';
@@ -14,12 +15,13 @@ import { newId, parseTags } from '../../core/utils/text';
 import { Avatar } from '../../shared/ui/avatar';
 import { Progress } from '../../shared/ui/badge';
 import { Icon } from '../../shared/ui/icon';
+import { FilesBoard } from '../files/files-board';
 
 /** Panel lateral con el detalle editable de una tarea. */
 @Component({
   selector: 'app-task-panel',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, RouterLink, Avatar, Icon, Progress],
+  imports: [FormsModule, RouterLink, Avatar, FilesBoard, Icon, Progress],
   host: { '(document:keydown.escape)': 'panel.close()' },
   template: `
     @if (task(); as t) {
@@ -43,7 +45,7 @@ import { Icon } from '../../shared/ui/icon';
           }
           <div class="ml-auto flex items-center gap-1">
             @if (canEdit()) {
-              <button class="btn btn-danger btn-sm" (click)="remove(t)"><app-icon name="trash" [size]="14" /> Eliminar</button>
+              <button class="btn btn-ghost btn-sm hover:text-coral" (click)="remove(t)"><app-icon name="trash" [size]="14" /> Eliminar</button>
             }
             <button class="btn btn-ghost btn-sm" aria-label="Cerrar" (click)="panel.close()"><app-icon name="x" /></button>
           </div>
@@ -66,26 +68,52 @@ import { Icon } from '../../shared/ui/icon';
             </p>
           }
 
-          <dl class="mt-5 grid grid-cols-[7.5rem_1fr] items-center gap-x-3 gap-y-2.5">
-            <dt class="text-ink-soft">Estado</dt>
-            <dd>
-              <select
-                class="h-8 cursor-pointer rounded-full border-0 px-3 text-xs font-medium"
-                [class]="statusClass()"
+          <!-- Estado: cuatro botones en lugar de un desplegable -->
+          <div class="mt-5 flex flex-wrap gap-1.5" role="radiogroup" aria-label="Estado">
+            @for (st of statusOrder; track st) {
+              <button
+                type="button"
+                role="radio"
+                class="chip h-8 gap-1.5 disabled:cursor-default"
+                [class.chip-active]="st === t.status"
+                [attr.aria-checked]="st === t.status"
                 [disabled]="!canEdit()"
-                (change)="update(t, { status: $any($event.target).value })"
+                (click)="update(t, { status: st })"
               >
-                @for (s of statusOrder; track s) {
-                  <option [value]="s" [selected]="s === t.status">{{ status[s].label }}</option>
-                }
-              </select>
-            </dd>
+                <span class="size-2 rounded-full" [class]="st === t.status ? 'bg-surface' : fill[status[st].tone]"></span>
+                {{ status[st].label }}
+              </button>
+            }
+          </div>
 
+          @if (t.blocked) {
+            <div class="mt-4 rounded-2xl bg-coral-soft p-4">
+              <div class="flex items-center gap-2 text-coral">
+                <app-icon name="lock" [size]="15" />
+                <span class="font-medium">Bloqueada</span>
+                @if (canEdit()) {
+                  <button class="btn btn-sm ml-auto h-7 bg-surface text-ink hover:bg-paper" (click)="update(t, { blocked: false, blockedReason: undefined })">
+                    Desbloquear
+                  </button>
+                }
+              </div>
+              <input
+                class="mt-2 w-full border-0 bg-transparent p-0 text-sm text-ink placeholder:text-coral/60 focus:outline-none"
+                placeholder="¿Qué la bloquea? (opcional)"
+                aria-label="Motivo del bloqueo"
+                [value]="t.blockedReason ?? ''"
+                [disabled]="!canEdit()"
+                (change)="update(t, { blockedReason: $any($event.target).value.trim() || undefined })"
+              />
+            </div>
+          }
+
+          <dl class="mt-5 grid grid-cols-[7rem_1fr] items-center gap-x-3 gap-y-3">
             <dt class="text-ink-soft">Responsable</dt>
             <dd class="flex items-center gap-2">
-              <app-avatar [member]="assignee()" [size]="24" />
+              <app-avatar [member]="assignee()" [size]="26" />
               <select
-                class="input h-8 max-w-60"
+                class="input h-9 max-w-60"
                 [disabled]="!canEdit()"
                 (change)="update(t, { assigneeId: $any($event.target).value || undefined })"
               >
@@ -100,51 +128,62 @@ import { Icon } from '../../shared/ui/icon';
             <dd>
               <input
                 type="date"
-                class="input h-8 max-w-44"
+                class="input h-9 max-w-44"
                 [value]="dateValue()"
                 [disabled]="!canEdit()"
                 (change)="update(t, { dueAt: toIso($any($event.target).value) })"
               />
             </dd>
-
-            <dt class="text-ink-soft">Prioridad</dt>
-            <dd>
-              <select
-                class="input h-8 max-w-44"
-                [disabled]="!canEdit()"
-                (change)="update(t, { priority: $any($event.target).value })"
-              >
-                @for (p of priorityOrder; track p) {
-                  <option [value]="p" [selected]="p === t.priority">{{ priority[p].label }}</option>
-                }
-              </select>
-            </dd>
-
-            <dt class="text-ink-soft">Estimación</dt>
-            <dd class="flex items-center gap-2">
-              <input
-                type="number"
-                min="0"
-                step="0.5"
-                class="input h-8 w-24"
-                [value]="t.estimateHours ?? ''"
-                [disabled]="!canEdit()"
-                (change)="setEstimate(t, $any($event.target).value)"
-              />
-              <span class="text-ink-faint">horas</span>
-            </dd>
-
-            <dt class="text-ink-soft">Etiquetas</dt>
-            <dd>
-              <input
-                class="input h-8"
-                placeholder="separadas por comas"
-                [value]="t.tags.join(', ')"
-                [disabled]="!canEdit()"
-                (change)="update(t, { tags: parseTags($any($event.target).value) })"
-              />
-            </dd>
           </dl>
+
+          <details class="group/more mt-4">
+            <summary class="flex cursor-pointer list-none items-center gap-2 text-sm text-ink-soft hover:text-ink">
+              <app-icon name="chevron-down" [size]="14" class="transition-transform group-open/more:rotate-180" />
+              Más detalles
+              <span class="truncate text-xs text-ink-faint">{{ extraSummary() }}</span>
+            </summary>
+            <dl class="mt-3 grid grid-cols-[7rem_1fr] items-center gap-x-3 gap-y-3">
+              <dt class="text-ink-soft">Prioridad</dt>
+              <dd>
+                <select class="input h-9 max-w-44" [disabled]="!canEdit()" (change)="update(t, { priority: $any($event.target).value })">
+                  @for (p of priorityOrder; track p) {
+                    <option [value]="p" [selected]="p === t.priority">{{ priority[p].label }}</option>
+                  }
+                </select>
+              </dd>
+
+              <dt class="text-ink-soft">Estimación</dt>
+              <dd class="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.5"
+                  class="input h-9 w-24"
+                  [value]="t.estimateHours ?? ''"
+                  [disabled]="!canEdit()"
+                  (change)="setEstimate(t, $any($event.target).value)"
+                />
+                <span class="text-ink-faint">horas</span>
+              </dd>
+
+              <dt class="text-ink-soft">Etiquetas</dt>
+              <dd>
+                <input
+                  class="input h-9"
+                  placeholder="separadas por comas"
+                  [value]="t.tags.join(', ')"
+                  [disabled]="!canEdit()"
+                  (change)="update(t, { tags: parseTags($any($event.target).value) })"
+                />
+              </dd>
+            </dl>
+          </details>
+
+          @if (!t.blocked && canEdit()) {
+            <button class="mt-3 inline-flex cursor-pointer items-center gap-1.5 text-sm text-ink-faint hover:text-coral" (click)="update(t, { blocked: true })">
+              <app-icon name="lock" [size]="13" /> Marcar como bloqueada
+            </button>
+          }
 
           <section class="mt-7">
             <h3 class="eyebrow mb-2">Descripción</h3>
@@ -156,6 +195,13 @@ import { Icon } from '../../shared/ui/icon';
               (change)="update(t, { description: $any($event.target).value })"
             ></textarea>
           </section>
+
+          @if (project()?.moduleIds?.includes('files') || attachments() > 0) {
+            <section class="mt-7">
+              <h3 class="eyebrow mb-2">Adjuntos</h3>
+              <app-files-board [projectId]="t.projectId" [taskId]="t.id" [compact]="true" />
+            </section>
+          }
 
           <section class="mt-7">
             <div class="mb-2 flex items-center gap-3">
@@ -241,8 +287,10 @@ export class TaskPanel {
   private readonly tasks = inject(TaskService);
   private readonly projects = inject(ProjectService);
   private readonly notes = inject(NoteService);
+  private readonly files = inject(FileService);
 
   protected readonly status = TASK_STATUS;
+  protected readonly fill = TONE_FILL;
   protected readonly statusOrder = TASK_STATUS_ORDER;
   protected readonly priority = PRIORITY;
   protected readonly priorityOrder = PRIORITY_ORDER;
@@ -264,8 +312,18 @@ export class TaskPanel {
     return id ? this.notes.visible().find((n) => n.id === id) : undefined;
   });
   protected readonly canEdit = computed(() => this.session.can('task.edit'));
-  protected readonly statusClass = computed(() => TONE_BADGE[TASK_STATUS[this.task()?.status ?? 'todo'].tone]);
   protected readonly dateValue = computed(() => toDateInput(this.task()?.dueAt));
+  protected readonly attachments = computed(() => this.files.countByTask().get(this.task()?.id ?? '') ?? 0);
+  /** Resumen de los campos plegados, para que no queden «escondidos» si tienen valor. */
+  protected readonly extraSummary = computed(() => {
+    const t = this.task();
+    if (!t) return '';
+    const parts: string[] = [];
+    if (t.priority !== 'medium') parts.push(`prioridad ${PRIORITY[t.priority].label.toLowerCase()}`);
+    if (t.estimateHours) parts.push(`${t.estimateHours} h`);
+    if (t.tags.length) parts.push(t.tags.map((tag) => '#' + tag).join(' '));
+    return parts.join(' · ');
+  });
   protected readonly subtasksDone = computed(() => this.task()?.subtasks.filter((s) => s.done).length ?? 0);
 
   protected update(task: Task, patch: TaskPatch): void {
@@ -305,9 +363,8 @@ export class TaskPanel {
   }
 
   protected remove(task: Task): void {
-    if (!confirm(`¿Eliminar la tarea «${task.title}»?`)) return;
     this.panel.close();
-    void this.tasks.remove(task);
+    this.tasks.remove(task);
   }
 
   protected ago(iso: string): string {

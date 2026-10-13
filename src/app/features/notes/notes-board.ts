@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, linkedSignal, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Id, NoteVisibility, QuickNote } from '../../core/models';
@@ -51,11 +51,11 @@ const VISIBILITY_LABEL: Record<NoteVisibility, string> = {
               }
             </select>
           }
-          <select class="input" name="visibility" aria-label="Visibilidad" [(ngModel)]="visibility">
-            <option value="private">Solo yo</option>
-            <option value="project" [disabled]="!projectId() && !targetProject()">Equipo del proyecto</option>
-            <option value="workspace">Todo el estudio</option>
-          </select>
+          <label class="flex cursor-pointer items-center gap-2 text-sm text-ink-soft">
+            <input type="checkbox" class="size-4 accent-ink" name="private" [(ngModel)]="privateNote" />
+            <app-icon name="lock" [size]="13" /> Solo para mí
+            <span class="ml-auto text-xs text-ink-faint">{{ privateNote() ? '' : (projectId() || targetProject() ? 'la verá el equipo' : 'la verá el estudio') }}</span>
+          </label>
           <button class="btn btn-primary w-full" type="submit" [disabled]="!content().trim()">Guardar nota</button>
         </form>
       }
@@ -170,7 +170,8 @@ export class NotesBoard {
   protected readonly title = signal('');
   protected readonly content = signal('');
   protected readonly targetProject = signal('');
-  protected readonly visibility = signal<NoteVisibility>('project');
+  /** Privada por defecto si no hay proyecto; compartida con el equipo si lo hay. */
+  protected readonly privateNote = linkedSignal(() => !this.projectId() && !this.targetProject());
   protected readonly editingId = signal<Id | null>(null);
   protected readonly convertingId = signal<Id | null>(null);
 
@@ -195,10 +196,11 @@ export class NotesBoard {
     const content = this.content().trim();
     if (!content) return;
     const projectId = this.projectId() || this.targetProject() || undefined;
-    const visibility = !projectId && this.visibility() === 'project' ? 'private' : this.visibility();
+    const visibility: NoteVisibility = this.privateNote() ? 'private' : projectId ? 'project' : 'workspace';
     await this.notes.create({ content, title: this.title().trim() || undefined, projectId, visibility });
     this.title.set('');
     this.content.set('');
+    this.toast.show('Nota guardada');
   }
 
   protected startConvert(note: QuickNote): void {
@@ -225,7 +227,7 @@ export class NotesBoard {
   }
 
   protected remove(note: QuickNote): void {
-    if (confirm('¿Eliminar esta nota?')) void this.notes.remove(note);
+    this.notes.remove(note);
   }
 
   protected ago(iso: string): string {

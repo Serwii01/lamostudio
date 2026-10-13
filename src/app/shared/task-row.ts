@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { PRIORITY, TASK_STATUS, TONE_TEXT, isTaskDone } from '../core/catalog';
 import { Task } from '../core/models';
+import { FileService } from '../core/services/files';
 import { ProjectService } from '../core/services/projects';
 import { SessionService } from '../core/services/session';
 import { TaskService } from '../core/services/tasks';
@@ -40,8 +41,10 @@ import { Icon } from './ui/icon';
             <app-icon name="flag" [size]="13" [class]="priorityClass()" [attr.title]="'Prioridad ' + priorityLabel()" />
           }
           <span class="truncate" [class.line-through]="done()" [class.text-ink-faint]="done()">{{ task().title }}</span>
-          @if (task().status === 'blocked') {
-            <app-icon name="lock" [size]="13" class="text-coral" />
+          @if (task().blocked) {
+            <span class="inline-flex shrink-0 items-center gap-1 rounded-full bg-coral-soft px-1.5 py-px text-[11px] font-medium text-coral" [attr.title]="task().blockedReason ?? 'Bloqueada'">
+              <app-icon name="lock" [size]="11" /> bloqueada
+            </span>
           }
         </div>
         @if (showProject() && project(); as p) {
@@ -53,9 +56,14 @@ import { Icon } from './ui/icon';
 
       <div class="hidden items-center gap-1 lg:flex">
         @for (tag of task().tags.slice(0, 2); track tag) {
-          <span class="font-hand text-xs text-ink-faint">#{{ tag }}</span>
+          <span class="text-xs text-ink-faint">#{{ tag }}</span>
         }
       </div>
+      @if (attachments()) {
+        <span class="hidden items-center gap-1 text-xs text-ink-faint sm:inline-flex" title="Adjuntos">
+          <app-icon name="paperclip" [size]="13" />{{ attachments() }}
+        </span>
+      }
       @if (task().comments.length) {
         <span class="hidden items-center gap-1 text-xs text-ink-faint sm:inline-flex">
           <app-icon name="message" [size]="13" />{{ task().comments.length }}
@@ -75,7 +83,9 @@ export class TaskRow {
   protected readonly panel = inject(TaskPanelService);
   private readonly projects = inject(ProjectService);
   private readonly session = inject(SessionService);
+  private readonly files = inject(FileService);
 
+  protected readonly attachments = computed(() => this.files.countByTask().get(this.task().id) ?? 0);
   protected readonly done = computed(() => isTaskDone(this.task().status));
   protected readonly statusMeta = computed(() => TASK_STATUS[this.task().status]);
   protected readonly priorityLabel = computed(() => PRIORITY[this.task().priority].label);

@@ -68,17 +68,13 @@ export const PROJECT_STATUS_ORDER = Object.keys(PROJECT_STATUS) as ProjectStatus
 export const INACTIVE_PROJECT_STATUSES: ProjectStatus[] = ['draft', 'closed', 'archived'];
 
 export const TASK_STATUS: Record<TaskStatus, Labeled> = {
-  todo: { label: 'Pendiente', tone: 'neutral' },
-  'in-progress': { label: 'En progreso', tone: 'ocean' },
-  blocked: { label: 'Bloqueada', tone: 'coral' },
+  todo: { label: 'Por hacer', tone: 'neutral' },
+  'in-progress': { label: 'En curso', tone: 'ocean' },
   review: { label: 'En revisión', tone: 'honey' },
-  changes: { label: 'Cambios', tone: 'plum' },
-  approved: { label: 'Aprobada', tone: 'moss' },
   done: { label: 'Hecha', tone: 'moss' },
 };
 export const TASK_STATUS_ORDER = Object.keys(TASK_STATUS) as TaskStatus[];
-export const DONE_TASK_STATUSES: TaskStatus[] = ['approved', 'done'];
-export const isTaskDone = (status: TaskStatus) => DONE_TASK_STATUSES.includes(status);
+export const isTaskDone = (status: TaskStatus) => status === 'done';
 
 export const PRIORITY: Record<Priority, Labeled & { rank: number }> = {
   low: { label: 'Baja', tone: 'neutral', rank: 0 },
@@ -233,8 +229,8 @@ export const MODULES: ModuleDef[] = [
     id: 'files',
     label: 'Archivos',
     path: 'archivos',
-    icon: 'file',
-    built: false,
+    icon: 'paperclip',
+    built: true,
     phase: 'Fase 2',
     description: 'Documentos, previews y enlaces a Drive, Dropbox o Frame.io.',
     planned: [
@@ -376,6 +372,10 @@ export const ACTIVITY_PHRASE: Record<ActivityVerb, (detail?: string) => string> 
   'task.assigned': (d) => `asignó a ${d} la tarea`,
   'task.commented': () => 'comentó en',
   'task.deleted': () => 'eliminó la tarea',
+  'task.blocked': (d) => `marcó como ${d} la tarea`,
   'note.created': () => 'añadió la nota',
   'note.converted': () => 'convirtió una nota en la tarea',
+  'file.uploaded': () => 'subió',
+  'file.linked': () => 'enlazó',
+  'file.deleted': () => 'eliminó el archivo',
 };

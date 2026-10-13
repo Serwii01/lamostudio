@@ -19,7 +19,7 @@ const VIEWS: { id: View; label: string; test: (t: Task, userId: string) => boole
   { id: 'mine', label: 'Mías', test: (t, userId) => t.assigneeId === userId },
   { id: 'week', label: 'Esta semana', test: (t) => !!t.dueAt && daysFromToday(t.dueAt) < 7 },
   { id: 'unassigned', label: 'Sin responsable', test: (t) => !t.assigneeId },
-  { id: 'blocked', label: 'Bloqueadas', test: (t) => t.status === 'blocked' },
+  { id: 'blocked', label: 'Bloqueadas', test: (t) => !!t.blocked },
 ];
 
 @Component({

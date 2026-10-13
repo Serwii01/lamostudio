@@ -1,12 +1,16 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { MODULE_BY_ID, isTaskDone } from '../../core/catalog';
+import { isTaskDone } from '../../core/catalog';
+import { FileAsset } from '../../core/models';
+import { FileService } from '../../core/services/files';
+import { FILE_KIND_META } from '../../core/utils/files';
 import { ActivityService } from '../../core/services/activity';
 import { ProjectService } from '../../core/services/projects';
 import { SessionService } from '../../core/services/session';
 import { TaskService } from '../../core/services/tasks';
 import { daysFromToday } from '../../core/utils/dates';
 import { ActivityFeed } from '../../shared/activity-feed';
+import { TaskQuickAdd } from '../../shared/task-quick-add';
 import { TaskRow } from '../../shared/task-row';
 import { Avatar } from '../../shared/ui/avatar';
 import { Empty } from '../../shared/ui/badge';
@@ -17,7 +21,7 @@ import { Enso } from '../../shared/ui/scribble';
 @Component({
   selector: 'app-project-overview',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, ActivityFeed, TaskRow, Avatar, Empty, Enso, Icon],
+  imports: [RouterLink, ActivityFeed, TaskQuickAdd, TaskRow, Avatar, Empty, Enso, Icon],
   template: `
     @if (project(); as p) {
       <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -76,30 +80,51 @@ import { Enso } from '../../shared/ui/scribble';
               @for (t of upcoming(); track t.id) {
                 <app-task-row [task]="t" />
               } @empty {
-                <app-empty title="Sin entregas próximas" hint="No hay tareas abiertas con fecha." />
+                @if (projectTasks().length) {
+                  <app-empty title="Sin entregas próximas" hint="No hay tareas abiertas con fecha." doodle="mountain" [compact]="true" />
+                } @else {
+                  <div class="px-5 py-6">
+                    <p class="font-display font-bold">Empieza por la primera tarea</p>
+                    <p class="hand mb-4 text-sm">Escribe qué hay que hacer y pulsa Enter. Luego podrás asignarla y ponerle fecha.</p>
+                    @if (canEdit()) {
+                      <app-task-quick-add [projectId]="projectId()" placeholder="p. ej. Reunión de briefing con el cliente" />
+                    }
+                  </div>
+                }
               }
             </div>
           </section>
         </div>
 
         <div class="space-y-6">
-          <section class="card p-4">
-            <h2 class="mb-3 card-title">Módulos</h2>
-            <div class="grid grid-cols-2 gap-2">
-              @for (m of modules(); track m.id) {
-                <a
-                  [routerLink]="['..', m.path]"
-                  class="flex items-center gap-2 rounded-lg border border-line px-3 py-2.5 hover:border-ink-faint hover:bg-ink/[0.03]"
-                >
-                  <app-icon [name]="m.icon" class="text-ink-soft" />
-                  <span class="truncate">{{ m.label }}</span>
-                  @if (!m.built) {
-                    <span class="ml-auto size-1.5 shrink-0 rounded-full bg-ink-faint" title="Próximamente"></span>
+          @if (p.moduleIds.includes('files')) {
+            <section class="card p-4">
+              <header class="mb-3 flex items-baseline justify-between">
+                <h2 class="card-title">Archivos recientes</h2>
+                <a routerLink="../archivos" class="text-xs text-ink-soft hover:text-ink">Ver todos →</a>
+              </header>
+              @if (recentFiles().length) {
+                <div class="grid grid-cols-3 gap-2">
+                  @for (f of recentFiles(); track f.id) {
+                    <a routerLink="../archivos" class="group block" [attr.title]="f.name">
+                      <span class="grid aspect-square place-items-center overflow-hidden rounded-xl bg-ink/[0.05] text-ink-faint">
+                        @if (f.thumbnail) {
+                          <img [src]="f.thumbnail" alt="" class="size-full object-cover" />
+                        } @else {
+                          <app-icon [name]="fileIcon(f)" [size]="20" />
+                        }
+                      </span>
+                      <span class="mt-1 block truncate text-xs text-ink-soft group-hover:text-ink">{{ f.name }}</span>
+                    </a>
                   }
+                </div>
+              } @else {
+                <a routerLink="../archivos" class="flex items-center gap-3 rounded-xl border-[1.5px] border-dashed border-ink/20 px-4 py-4 text-ink-soft hover:border-ink-faint hover:text-ink">
+                  <app-icon name="upload" [size]="18" /> Sube referencias o pega enlaces
                 </a>
               }
-            </div>
-          </section>
+            </section>
+          }
 
           <section class="card p-4">
             <h2 class="mb-3 card-title">Equipo</h2>
@@ -138,26 +163,36 @@ export class ProjectOverview {
   private readonly tasks = inject(TaskService);
   private readonly session = inject(SessionService);
   private readonly activityService = inject(ActivityService);
+  private readonly files = inject(FileService);
 
   protected readonly project = computed(() => this.projects.byId(this.projectId()));
   protected readonly stats = computed(() => this.projects.statsFor(this.projectId()));
-  private readonly projectTasks = computed(() => this.tasks.byProject(this.projectId()));
+  protected readonly projectTasks = computed(() => this.tasks.byProject(this.projectId()));
   private readonly open = computed(() => this.projectTasks().filter((t) => !isTaskDone(t.status)));
 
   protected readonly risks = computed(() =>
-    this.open().filter((t) => t.status === 'blocked' || (t.dueAt && daysFromToday(t.dueAt) < 0)),
+    this.open().filter((t) => t.blocked || (t.dueAt && daysFromToday(t.dueAt) < 0)),
   );
 
   protected readonly upcoming = computed(() =>
     this.open()
-      .filter((t) => t.dueAt && daysFromToday(t.dueAt) >= 0 && t.status !== 'blocked')
+      .filter((t) => t.dueAt && daysFromToday(t.dueAt) >= 0 && !t.blocked)
       .sort((a, b) => a.dueAt!.localeCompare(b.dueAt!))
       .slice(0, 6),
   );
 
-  protected readonly modules = computed(() =>
-    (this.project()?.moduleIds ?? []).filter((id) => id !== 'overview').map((id) => MODULE_BY_ID[id]),
+  protected readonly recentFiles = computed(() =>
+    this.files
+      .visible()
+      .filter((f) => f.projectId === this.projectId())
+      .slice(0, 6),
   );
+
+  protected readonly canEdit = computed(() => this.session.can('task.edit'));
+
+  protected fileIcon(file: FileAsset): string {
+    return FILE_KIND_META[file.kind].icon;
+  }
 
   protected readonly team = computed(() => {
     const project = this.project();

@@ -4,6 +4,8 @@ import { NotePatch, NoteRepository, TaskRepository } from '../data/repositories'
 import { firstLine } from '../utils/text';
 import { ActivityService } from './activity';
 import { SessionService } from './session';
+import { ToastService } from './ui-state';
+import { PendingDeletes } from './undo';
 
 export interface NoteDraft {
   content: string;
@@ -18,12 +20,13 @@ export class NoteService {
   private readonly taskRepo = inject(TaskRepository);
   private readonly session = inject(SessionService);
   private readonly activity = inject(ActivityService);
+  private readonly deletes = new PendingDeletes<QuickNote>(inject(ToastService));
+  private readonly notes = this.deletes.filter(this.repo.notes);
 
   /** Notas visibles para el usuario actual: fijadas primero, luego las más recientes. */
   readonly visible = computed(() => {
     const userId = this.session.currentUserId();
-    return this.repo
-      .notes()
+    return this.notes()
       .filter((n) => n.visibility !== 'private' || n.authorId === userId)
       .sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.updatedAt.localeCompare(a.updatedAt));
   });
@@ -42,8 +45,9 @@ export class NoteService {
     return this.repo.update(note.id, patch);
   }
 
-  remove(note: QuickNote): Promise<void> {
-    return this.repo.remove(note.id);
+  /** Oculta la nota y la borra pasados unos segundos si no se deshace. */
+  remove(note: QuickNote): void {
+    this.deletes.remove(note, 'Nota eliminada', () => this.repo.remove(note.id));
   }
 
   /** Nota → Tarea: crea la tarea con enlace de origen y vincula la nota a ella. */

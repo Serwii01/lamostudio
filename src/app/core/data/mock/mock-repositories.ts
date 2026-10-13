@@ -1,10 +1,13 @@
 import { Injectable, Provider, computed, inject } from '@angular/core';
-import { Id, IsoDate, Project, QuickNote, Task } from '../../models';
+import { FileAsset, Id, IsoDate, Project, QuickNote, Task } from '../../models';
 import { newId } from '../../utils/text';
 import {
   ActivityRepository,
   DataAdmin,
+  FilePatch,
+  FileRepository,
   NewActivity,
+  NewFile,
   NewNote,
   NewProject,
   NewTask,
@@ -16,6 +19,7 @@ import {
   TaskRepository,
   WorkspaceRepository,
 } from '../repositories';
+import { blobStore } from './blob-store';
 import { MockDb } from './mock-db';
 
 const now = (): IsoDate => new Date().toISOString();
@@ -142,11 +146,58 @@ export class MockActivityRepository extends ActivityRepository {
 }
 
 @Injectable()
+export class MockFileRepository extends FileRepository {
+  private readonly db = inject(MockDb);
+  /** URLs temporales ya creadas, para no duplicar Blobs en memoria. */
+  private readonly objectUrls = new Map<string, string>();
+  readonly files = computed(() => this.db.state().files);
+
+  async create(input: NewFile, content?: Blob): Promise<FileAsset> {
+    const file: FileAsset = {
+      ...input,
+      id: newId('file'),
+      workspaceId: this.db.state().workspace.id,
+      createdAt: now(),
+    };
+    // Primero el binario: si falla (cuota llena), no queda un archivo «fantasma».
+    if (content) await blobStore.put(file.id, content);
+    this.db.patch('files', (list) => [file, ...list]);
+    return file;
+  }
+
+  async update(id: Id, patch: FilePatch): Promise<void> {
+    this.db.patch('files', (list) => list.map((f) => (f.id === id ? { ...f, ...patch } : f)));
+  }
+
+  async remove(id: Id): Promise<void> {
+    this.db.patch('files', (list) => list.filter((f) => f.id !== id));
+    const url = this.objectUrls.get(id);
+    if (url) URL.revokeObjectURL(url);
+    this.objectUrls.delete(id);
+    await blobStore.delete(id).catch(() => undefined);
+  }
+
+  async contentUrl(id: Id): Promise<string | null> {
+    const file = this.files().find((f) => f.id === id);
+    if (!file) return null;
+    if (file.url) return file.url;
+    const cached = this.objectUrls.get(id);
+    if (cached) return cached;
+    const blob = await blobStore.get(id).catch(() => undefined);
+    if (!blob) return null;
+    const url = URL.createObjectURL(blob);
+    this.objectUrls.set(id, url);
+    return url;
+  }
+}
+
+@Injectable()
 export class MockDataAdmin extends DataAdmin {
   private readonly db = inject(MockDb);
   readonly isDemo = true;
 
   async reset(): Promise<void> {
+    await blobStore.clear().catch(() => undefined);
     this.db.reset();
   }
 }
@@ -158,6 +209,7 @@ export function provideMockData(): Provider[] {
     { provide: TaskRepository, useClass: MockTaskRepository },
     { provide: NoteRepository, useClass: MockNoteRepository },
     { provide: ActivityRepository, useClass: MockActivityRepository },
+    { provide: FileRepository, useClass: MockFileRepository },
     { provide: DataAdmin, useClass: MockDataAdmin },
   ];
 }

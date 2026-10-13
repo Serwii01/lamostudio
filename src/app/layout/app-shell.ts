@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Permission, ROLE_LABEL } from '../core/catalog';
 import { ProjectService } from '../core/services/projects';
@@ -26,6 +25,7 @@ const NAV: NavItem[] = [
   { label: 'Mis tareas', path: '/mis-tareas', icon: 'check-square' },
   { label: 'Proyectos', path: '/proyectos', icon: 'folder' },
   { label: 'Notas', path: '/notas', icon: 'note' },
+  { label: 'Biblioteca', path: '/biblioteca', icon: 'image' },
   { label: 'Equipo', path: '/equipo', icon: 'users', perm: 'team.viewLoad' },
 ];
 
@@ -33,7 +33,6 @@ const NAV: NavItem[] = [
 const NAV_SOON: NavItem[] = [
   { label: 'Calendario', path: '/calendario', icon: 'calendar' },
   { label: 'Entregables', path: '/entregables', icon: 'package' },
-  { label: 'Biblioteca', path: '/biblioteca', icon: 'image' },
   { label: 'Clientes', path: '/clientes', icon: 'briefcase' },
   { label: 'Informes', path: '/informes', icon: 'chart' },
 ];
@@ -41,7 +40,7 @@ const NAV_SOON: NavItem[] = [
 @Component({
   selector: 'app-shell',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, FormsModule, Icon, Avatar, LogoMark, GlobalSearch, QuickCapture, TaskPanel],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, Icon, Avatar, LogoMark, GlobalSearch, QuickCapture, TaskPanel],
   host: { '(document:keydown)': 'onKeydown($event)' },
   template: `
     <div class="min-h-dvh lg:pl-64">
@@ -55,7 +54,7 @@ const NAV_SOON: NavItem[] = [
           <app-logo-mark [size]="40" class="text-shu" />
           <span class="leading-none">
             <span class="block text-lg font-bold tracking-[0.12em] text-shu">LAMO</span>
-            <span class="hand mt-1 block text-xs">{{ session.workspace().cycle }}</span>
+            <span class="hand mt-1 block text-sm">{{ session.workspace().cycle }}</span>
           </span>
         </a>
 
@@ -127,21 +126,32 @@ const NAV_SOON: NavItem[] = [
             <span><kbd class="kbd">Esc</kbd> cerrar</span>
           </p>
           <div class="flex items-center gap-2">
-            <app-avatar [member]="session.currentUser()" [size]="32" />
-            <div class="min-w-0 flex-1">
-              <label for="current-user" class="sr-only">Ver la app como</label>
-              <select
-                id="current-user"
-                class="w-full cursor-pointer truncate bg-transparent text-sm font-medium text-ink focus:outline-none"
-                [ngModel]="session.currentUserId()"
-                (ngModelChange)="session.switchUser($event)"
-              >
+            <details class="group/user relative min-w-0 flex-1" #userMenu>
+              <summary class="flex cursor-pointer list-none items-center gap-2 rounded-full py-1 pr-2 pl-1 hover:bg-ink/5" title="Cambiar de usuario (modo demo)">
+                <app-avatar [member]="session.currentUser()" [size]="32" />
+                <span class="min-w-0 flex-1">
+                  <span class="block truncate text-sm font-medium">{{ session.currentUser().name }}</span>
+                  <span class="block truncate text-xs text-ink-faint">{{ roleLabel[session.currentUser().role] }}</span>
+                </span>
+                <app-icon name="chevron-down" [size]="13" class="text-ink-faint transition-transform group-open/user:rotate-180" />
+              </summary>
+              <div class="card absolute bottom-full left-0 z-50 mb-2 w-60 p-1.5 shadow-xl shadow-ink/10">
+                <p class="px-2.5 pt-1.5 pb-1 text-xs text-ink-faint">Modo demo · ver la app como</p>
                 @for (m of session.members(); track m.id) {
-                  <option [value]="m.id">{{ m.name }}</option>
+                  <button
+                    class="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left hover:bg-ink/5"
+                    [class.bg-ink/5]="m.id === session.currentUserId()"
+                    (click)="switchUser(m.id, userMenu)"
+                  >
+                    <app-avatar [member]="m" [size]="24" />
+                    <span class="min-w-0 flex-1">
+                      <span class="block truncate">{{ m.name }}</span>
+                      <span class="block truncate text-xs text-ink-faint">{{ roleLabel[m.role] }}</span>
+                    </span>
+                  </button>
                 }
-              </select>
-              <p class="hand truncate text-xs">{{ roleLabel[session.currentUser().role] }}</p>
-            </div>
+              </div>
+            </details>
             @if (session.can('project.manage')) {
               <a routerLink="/configuracion" class="btn btn-ghost size-8 px-0" title="Configuración" aria-label="Configuración" (click)="navOpen.set(false)">
                 <app-icon name="settings" />
@@ -190,9 +200,12 @@ const NAV_SOON: NavItem[] = [
 
     <div class="pointer-events-none fixed bottom-6 left-1/2 z-[60] flex -translate-x-1/2 flex-col items-center gap-2" aria-live="polite">
       @for (t of toast.toasts(); track t.id) {
-        <div class="pointer-events-auto flex items-center gap-2 rounded-full bg-ink py-2.5 pr-5 pl-4 text-surface shadow-lg shadow-ink/20">
-          <app-icon name="check-hand" [size]="18" [stroke]="2.4" class="text-shu" />
-          {{ t.text }}
+        <div class="pointer-events-auto flex max-w-[92vw] items-center gap-2 rounded-full bg-ink py-2 pr-2 pl-4 text-surface shadow-lg shadow-ink/20" [class.pr-5]="!t.action">
+          <app-icon [name]="t.tone === 'error' ? 'alert' : 'check-hand'" [size]="18" [stroke]="t.tone === 'error' ? 1.8 : 2.4" class="shrink-0 text-shu" />
+          <span class="min-w-0">{{ t.text }}</span>
+          @if (t.action; as action) {
+            <button class="btn btn-sm h-8 shrink-0 bg-surface text-ink hover:bg-paper" (click)="toast.runAction(t)">{{ action.label }}</button>
+          }
         </div>
       }
     </div>
@@ -211,6 +224,11 @@ export class AppShell {
   protected readonly roleLabel = ROLE_LABEL;
   protected readonly navOpen = signal(false);
   protected readonly activeProjects = computed(() => this.projects.active());
+
+  protected switchUser(id: string, menu: HTMLDetailsElement): void {
+    this.session.switchUser(id);
+    menu.open = false;
+  }
 
   protected onKeydown(event: KeyboardEvent): void {
     const target = event.target;
