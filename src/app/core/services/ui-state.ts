@@ -72,3 +72,43 @@ export class QuickCaptureService {
     this.isOpen.set(false);
   }
 }
+
+export type TaskView = 'tareas' | 'tablero';
+const TASK_VIEW_KEY = 'lamo-studio:task-view';
+
+/** Vista preferida de las tareas de un proyecto (lista o tablero); se recuerda entre visitas. */
+@Injectable({ providedIn: 'root' })
+export class TaskViewService {
+  readonly view = signal<TaskView>(readTaskView());
+
+  set(view: TaskView): void {
+    this.view.set(view);
+    try {
+      localStorage.setItem(TASK_VIEW_KEY, view);
+    } catch {
+      // Preferencia solo para esta sesión.
+    }
+  }
+}
+
+function readTaskView(): TaskView {
+  try {
+    return localStorage.getItem(TASK_VIEW_KEY) === 'tablero' ? 'tablero' : 'tareas';
+  } catch {
+    return 'tareas';
+  }
+}
+
+/** Diálogo global «Nueva tarea» (botón de la barra superior o tecla T). */
+@Injectable({ providedIn: 'root' })
+export class NewTaskService {
+  readonly isOpen = signal(false);
+
+  open(): void {
+    this.isOpen.set(true);
+  }
+
+  close(): void {
+    this.isOpen.set(false);
+  }
+}

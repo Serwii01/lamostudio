@@ -69,7 +69,9 @@ import { Icon } from './ui/icon';
           <app-icon name="message" [size]="13" />{{ task().comments.length }}
         </span>
       }
-      <span class="hidden sm:inline-flex"><app-badge [tone]="statusMeta().tone">{{ statusMeta().label }}</app-badge></span>
+      @if (showStatus()) {
+        <span class="hidden sm:inline-flex"><app-badge [tone]="statusMeta().tone">{{ statusMeta().label }}</app-badge></span>
+      }
       <span class="w-20 text-right text-xs whitespace-nowrap" [class]="dueClass()">{{ due() }}</span>
       <app-avatar [member]="assignee()" [size]="24" />
     </div>
@@ -78,6 +80,8 @@ import { Icon } from './ui/icon';
 export class TaskRow {
   readonly task = input.required<Task>();
   readonly showProject = input(false);
+  /** Se oculta cuando la lista ya está agrupada por estado. */
+  readonly showStatus = input(true);
 
   protected readonly tasks = inject(TaskService);
   protected readonly panel = inject(TaskPanelService);

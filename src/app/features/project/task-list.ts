@@ -8,6 +8,8 @@ import { daysFromToday } from '../../core/utils/dates';
 import { normalize } from '../../core/utils/text';
 import { TaskQuickAdd } from '../../shared/task-quick-add';
 import { TaskRow } from '../../shared/task-row';
+import { TaskViewSwitch } from '../../shared/task-view-switch';
+import { TaskViewService } from '../../core/services/ui-state';
 import { Empty } from '../../shared/ui/badge';
 import { Icon } from '../../shared/ui/icon';
 
@@ -25,11 +27,16 @@ const VIEWS: { id: View; label: string; test: (t: Task, userId: string) => boole
 @Component({
   selector: 'app-task-list',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TaskQuickAdd, TaskRow, Empty, Icon],
+  imports: [FormsModule, TaskQuickAdd, TaskRow, TaskViewSwitch, Empty, Icon],
   template: `
-    @if (session.can('task.edit')) {
-      <app-task-quick-add [projectId]="projectId()" />
-    }
+    <div class="flex flex-col-reverse gap-3 sm:flex-row sm:items-center">
+      @if (session.can('task.edit')) {
+        <app-task-quick-add class="flex-1" [projectId]="projectId()" />
+      } @else {
+        <span class="flex-1"></span>
+      }
+      <app-task-view-switch current="tareas" />
+    </div>
 
     <div class="mt-4 flex flex-wrap items-center gap-2">
       @for (v of views; track v.id) {
@@ -56,7 +63,7 @@ const VIEWS: { id: View; label: string; test: (t: Task, userId: string) => boole
           </h2>
           <div class="divide-y divide-line/60">
             @for (t of g.tasks; track t.id) {
-              <app-task-row [task]="t" />
+              <app-task-row [task]="t" [showStatus]="false" />
             }
           </div>
         </section>
@@ -70,6 +77,10 @@ const VIEWS: { id: View; label: string; test: (t: Task, userId: string) => boole
 })
 export class TaskList {
   readonly projectId = input.required<string>();
+
+  constructor() {
+    inject(TaskViewService).set('tareas');
+  }
 
   protected readonly session = inject(SessionService);
   private readonly tasks = inject(TaskService);

@@ -148,7 +148,10 @@ import { Enso } from '../../shared/ui/scribble';
           </section>
 
           <section class="card p-4">
-            <h2 class="mb-4 card-title">Actividad reciente</h2>
+            <header class="mb-4 flex items-baseline justify-between">
+              <h2 class="card-title">Actividad reciente</h2>
+              <a routerLink="../actividad" class="text-xs text-ink-soft hover:text-ink">Ver toda →</a>
+            </header>
             <app-activity-feed [entries]="activity()" />
           </section>
         </div>

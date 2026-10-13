@@ -3,12 +3,13 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Permission, ROLE_LABEL } from '../core/catalog';
 import { ProjectService } from '../core/services/projects';
 import { SessionService } from '../core/services/session';
-import { QuickCaptureService, TaskPanelService, ToastService } from '../core/services/ui-state';
+import { NewTaskService, QuickCaptureService, TaskPanelService, ToastService } from '../core/services/ui-state';
 import { TaskPanel } from '../features/task-panel/task-panel';
 import { Avatar } from '../shared/ui/avatar';
 import { Icon } from '../shared/ui/icon';
 import { LogoMark } from '../shared/ui/logo';
 import { GlobalSearch } from './global-search';
+import { NewTaskDialog } from './new-task-dialog';
 import { QuickCapture } from './quick-capture';
 
 interface NavItem {
@@ -22,25 +23,17 @@ interface NavItem {
 /** Secciones que ya funcionan. */
 const NAV: NavItem[] = [
   { label: 'Inicio', path: '/', icon: 'home', exact: true },
-  { label: 'Mis tareas', path: '/mis-tareas', icon: 'check-square' },
+  { label: 'Tareas', path: '/tareas', icon: 'check-square' },
   { label: 'Proyectos', path: '/proyectos', icon: 'folder' },
   { label: 'Notas', path: '/notas', icon: 'note' },
   { label: 'Biblioteca', path: '/biblioteca', icon: 'image' },
   { label: 'Equipo', path: '/equipo', icon: 'users', perm: 'team.viewLoad' },
 ];
 
-/** Secciones planificadas: agrupadas aparte para no confundir con las que ya funcionan. */
-const NAV_SOON: NavItem[] = [
-  { label: 'Calendario', path: '/calendario', icon: 'calendar' },
-  { label: 'Entregables', path: '/entregables', icon: 'package' },
-  { label: 'Clientes', path: '/clientes', icon: 'briefcase' },
-  { label: 'Informes', path: '/informes', icon: 'chart' },
-];
-
 @Component({
   selector: 'app-shell',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, Icon, Avatar, LogoMark, GlobalSearch, QuickCapture, TaskPanel],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, Icon, Avatar, LogoMark, GlobalSearch, NewTaskDialog, QuickCapture, TaskPanel],
   host: { '(document:keydown)': 'onKeydown($event)' },
   template: `
     <div class="min-h-dvh lg:pl-64">
@@ -77,8 +70,15 @@ const NAV_SOON: NavItem[] = [
             }
           </ul>
 
-          @if (activeProjects().length) {
-            <p class="eyebrow px-3 pt-7 pb-2">Proyectos activos</p>
+          @if (activeProjects().length || session.can('project.create')) {
+            <div class="flex items-center justify-between px-3 pt-7 pb-2">
+              <p class="eyebrow">Proyectos activos</p>
+              @if (session.can('project.create')) {
+                <a routerLink="/proyectos/nuevo" class="btn btn-ghost -mr-1.5 size-7 px-0" title="Nuevo proyecto" aria-label="Nuevo proyecto" (click)="navOpen.set(false)">
+                  <app-icon name="plus" [size]="15" />
+                </a>
+              }
+            </div>
             <ul class="space-y-0.5">
               @for (p of activeProjects(); track p.id) {
                 <li>
@@ -95,32 +95,11 @@ const NAV_SOON: NavItem[] = [
               }
             </ul>
           }
-
-          <details class="group/soon mt-7">
-            <summary class="eyebrow flex cursor-pointer list-none items-center gap-1.5 px-3 py-1 hover:text-ink">
-              En camino
-              <app-icon name="chevron-down" [size]="12" class="transition-transform group-open/soon:rotate-180" />
-            </summary>
-            <ul class="mt-1 space-y-0.5">
-              @for (item of soon; track item.path) {
-                <li>
-                  <a
-                    [routerLink]="item.path"
-                    routerLinkActive="!text-ink"
-                    class="flex h-8 items-center gap-3 rounded-full px-3 text-ink-faint transition-colors hover:bg-ink/5 hover:text-ink-soft"
-                    (click)="navOpen.set(false)"
-                  >
-                    <app-icon [name]="item.icon" [size]="15" />
-                    {{ item.label }}
-                  </a>
-                </li>
-              }
-            </ul>
-          </details>
         </nav>
 
         <div class="space-y-3 border-t border-line/70 px-4 py-4">
           <p class="flex flex-wrap items-center gap-x-3 gap-y-1 px-1 text-[11px] text-ink-faint">
+            <span><kbd class="kbd">T</kbd> tarea</span>
             <span><kbd class="kbd">N</kbd> nota</span>
             <span><kbd class="kbd">/</kbd> buscar</span>
             <span><kbd class="kbd">Esc</kbd> cerrar</span>
@@ -173,16 +152,16 @@ const NAV_SOON: NavItem[] = [
         <app-global-search class="max-w-md min-w-0 flex-1" />
         <div class="ml-auto flex items-center gap-2">
           @if (session.can('note.create')) {
-            <button class="btn btn-outline px-3 sm:px-4" title="Nota rápida (N)" (click)="capture.open()">
+            <button class="btn btn-outline px-3 sm:px-4" title="Apuntar una idea (tecla N)" (click)="capture.open()">
               <app-icon name="pen" />
-              <span class="hidden sm:inline">Nota rápida</span>
+              <span class="hidden sm:inline">Nota</span>
             </button>
           }
-          @if (session.can('project.create')) {
-            <a class="btn btn-primary px-3 sm:px-4" routerLink="/proyectos/nuevo" title="Nuevo proyecto">
+          @if (canCreateTask()) {
+            <button class="btn btn-primary px-3 sm:px-4" title="Crear una tarea (tecla T)" (click)="newTask.open()">
               <app-icon name="plus" />
-              <span class="hidden sm:inline">Nuevo proyecto</span>
-            </a>
+              <span class="hidden sm:inline">Nueva tarea</span>
+            </button>
           }
         </div>
       </header>
@@ -196,6 +175,10 @@ const NAV_SOON: NavItem[] = [
 
     @if (capture.isOpen()) {
       <app-quick-capture />
+    }
+
+    @if (newTask.isOpen()) {
+      <app-new-task-dialog />
     }
 
     <div class="pointer-events-none fixed bottom-6 left-1/2 z-[60] flex -translate-x-1/2 flex-col items-center gap-2" aria-live="polite">
@@ -215,15 +198,16 @@ export class AppShell {
   protected readonly session = inject(SessionService);
   protected readonly capture = inject(QuickCaptureService);
   protected readonly toast = inject(ToastService);
+  protected readonly newTask = inject(NewTaskService);
   private readonly projects = inject(ProjectService);
   private readonly panel = inject(TaskPanelService);
   private readonly search = viewChild.required(GlobalSearch);
 
   protected readonly nav = computed(() => NAV.filter((item) => !item.perm || this.session.can(item.perm)));
-  protected readonly soon = NAV_SOON;
   protected readonly roleLabel = ROLE_LABEL;
   protected readonly navOpen = signal(false);
   protected readonly activeProjects = computed(() => this.projects.active());
+  protected readonly canCreateTask = computed(() => this.session.can('task.edit') && this.activeProjects().length > 0);
 
   protected switchUser(id: string, menu: HTMLDetailsElement): void {
     this.session.switchUser(id);
@@ -233,10 +217,15 @@ export class AppShell {
   protected onKeydown(event: KeyboardEvent): void {
     const target = event.target;
     const typing = target instanceof Element && !!target.closest('input, textarea, select, [contenteditable="true"]');
-    if (typing || event.ctrlKey || event.metaKey || event.altKey || this.panel.openId() || this.capture.isOpen()) return;
-    if (event.key.toLowerCase() === 'n' && this.session.can('note.create')) {
+    const busy = this.panel.openId() || this.capture.isOpen() || this.newTask.isOpen();
+    if (typing || busy || event.ctrlKey || event.metaKey || event.altKey) return;
+    const key = event.key.toLowerCase();
+    if (key === 'n' && this.session.can('note.create')) {
       event.preventDefault();
       this.capture.open();
+    } else if (key === 't' && this.canCreateTask()) {
+      event.preventDefault();
+      this.newTask.open();
     } else if (event.key === '/') {
       event.preventDefault();
       this.search().focus();

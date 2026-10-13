@@ -1,30 +1,33 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
-import { CanActivateFn, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { CanActivateFn, NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
+import { filter, map } from 'rxjs';
 import { MODULE_BY_ID, PROJECT_STATUS, PROJECT_STATUS_ORDER, PROJECT_TYPE_LABEL, TONE_BADGE } from '../../core/catalog';
 import { Project, ProjectModuleId, ProjectStatus } from '../../core/models';
 import { ProjectService } from '../../core/services/projects';
 import { SessionService } from '../../core/services/session';
+import { TaskViewService } from '../../core/services/ui-state';
 import { formatShortDate } from '../../core/utils/dates';
 import { AvatarStack } from '../../shared/ui/avatar';
 import { Badge, Empty } from '../../shared/ui/badge';
 import { Icon } from '../../shared/ui/icon';
 
-/** Impide abrir la ruta de un módulo que el proyecto no tiene activado. */
-export function requireModule(moduleId: ProjectModuleId): CanActivateFn {
+/** Impide abrir la ruta de un módulo que el proyecto no tiene activado (basta con uno de los indicados). */
+export function requireModule(...moduleIds: ProjectModuleId[]): CanActivateFn {
   return (route) => {
     const projects = inject(ProjectService);
     const router = inject(Router);
     const id = route.paramMap.get('projectId') ?? '';
     const project = projects.byId(id);
     if (!project) return router.createUrlTree(['/proyectos']);
-    return project.moduleIds.includes(moduleId) || router.createUrlTree(['/proyectos', id, 'resumen']);
+    return moduleIds.some((id) => project.moduleIds.includes(id)) || router.createUrlTree(['/proyectos', id, 'resumen']);
   };
 }
 
 @Component({
   selector: 'app-project-shell',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, AvatarStack, Badge, Empty, Icon],
+  imports: [RouterOutlet, RouterLink, AvatarStack, Badge, Empty, Icon],
   template: `
     @if (project(); as p) {
       <div class="mb-8">
@@ -62,14 +65,20 @@ export function requireModule(moduleId: ProjectModuleId): CanActivateFn {
                 {{ short(p.startAt) }} → <span class="font-medium text-ink">{{ short(p.dueAt) }}</span>
               </span>
               <app-avatar-stack [members]="members()" [max]="5" [size]="26" />
+              @if (canManage()) {
+                <a routerLink="configuracion" class="btn btn-outline h-8 px-3 text-xs" title="Ajustes del proyecto: datos, pestañas y miembros">
+                  <app-icon name="settings" [size]="14" /> Ajustes
+                </a>
+              }
             </div>
           </div>
 
           <nav class="mt-6 flex gap-1 overflow-x-auto border-b border-line/70" aria-label="Módulos del proyecto">
-            @for (m of tabs(); track m.path) {
+            @for (m of tabs(); track m.key) {
               <a
                 [routerLink]="m.path"
-                routerLinkActive="is-active"
+                [class.is-active]="m.match.includes(section())"
+                [attr.aria-current]="m.match.includes(section()) ? 'page' : null"
                 class="group relative -mb-px inline-flex h-11 items-center gap-1.5 px-3.5 whitespace-nowrap text-ink-soft transition-colors hover:text-ink [&.is-active]:font-medium [&.is-active]:text-ink"
               >
                 <app-icon [name]="m.icon" [size]="15" />
@@ -97,6 +106,8 @@ export class ProjectShell {
 
   private readonly projects = inject(ProjectService);
   private readonly session = inject(SessionService);
+  private readonly router = inject(Router);
+  private readonly taskView = inject(TaskViewService);
 
   protected readonly status = PROJECT_STATUS;
   protected readonly statusOrder = PROJECT_STATUS_ORDER;
@@ -115,21 +126,35 @@ export class ProjectShell {
 
   protected readonly canManage = computed(() => this.session.can('project.manage'));
 
+  /** Sección actual (último segmento de la URL), para marcar la pestaña activa. */
+  protected readonly section = toSignal(
+    this.router.events.pipe(
+      filter((e) => e instanceof NavigationEnd),
+      map(() => currentSection(this.router.url)),
+    ),
+    { initialValue: currentSection(this.router.url) },
+  );
+
   /**
-   * Pestañas = módulos activos y ya construidos, en el orden del proyecto, más
-   * Actividad y Configuración. Los módulos futuros activados por la plantilla
-   * aparecerán solos cuando existan.
+   * Pocas pestañas y claras: Resumen · Tareas · Archivos · Notas.
+   * - «Tareas» reúne lista y tablero (dos vistas de lo mismo) y abre la última usada.
+   * - Solo aparecen módulos activos y ya construidos; los futuros saldrán solos.
+   * - Actividad vive en el Resumen y los ajustes en el botón de la cabecera.
    */
   protected readonly tabs = computed(() => {
-    const modules = (this.project()?.moduleIds ?? [])
-      .map((id) => MODULE_BY_ID[id])
-      .filter((m) => m?.built)
-      .map((m) => ({ path: m.path, label: m.label, icon: m.icon }));
-    return [
-      ...modules,
-      { path: 'actividad', label: 'Actividad', icon: 'activity' },
-      ...(this.canManage() ? [{ path: 'configuracion', label: 'Configuración', icon: 'settings' }] : []),
-    ];
+    const ids = this.project()?.moduleIds ?? [];
+    const tabs: { key: string; path: string; label: string; icon: string; match: string[] }[] = [];
+    let tasksAdded = false;
+    for (const id of ids) {
+      if (id === 'tasks' || id === 'kanban') {
+        if (!tasksAdded) tabs.push({ key: 'tasks', path: this.taskView.view(), label: 'Tareas', icon: 'check-square', match: ['tareas', 'tablero'] });
+        tasksAdded = true;
+        continue;
+      }
+      const m = MODULE_BY_ID[id];
+      if (m?.built) tabs.push({ key: m.id, path: m.path, label: m.label, icon: m.icon, match: [m.path] });
+    }
+    return tabs;
   });
 
   protected readonly statusClass = computed(() => TONE_BADGE[PROJECT_STATUS[this.project()?.status ?? 'draft'].tone]);
@@ -141,4 +166,8 @@ export class ProjectShell {
   protected short(iso?: string): string {
     return formatShortDate(iso);
   }
+}
+
+function currentSection(url: string): string {
+  return url.split(/[?#]/)[0].split('/').filter(Boolean)[2] ?? 'resumen';
 }

@@ -5,18 +5,28 @@ import { Task, TaskStatus } from '../../core/models';
 import { FileService } from '../../core/services/files';
 import { SessionService } from '../../core/services/session';
 import { TaskService } from '../../core/services/tasks';
-import { TaskPanelService } from '../../core/services/ui-state';
+import { TaskPanelService, TaskViewService } from '../../core/services/ui-state';
 import { daysFromToday, relativeDue } from '../../core/utils/dates';
 import { TaskQuickAdd } from '../../shared/task-quick-add';
+import { TaskViewSwitch } from '../../shared/task-view-switch';
 import { Avatar } from '../../shared/ui/avatar';
 import { Icon } from '../../shared/ui/icon';
 
 @Component({
   selector: 'app-kanban',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CdkDropListGroup, CdkDropList, CdkDrag, CdkDragPlaceholder, TaskQuickAdd, Avatar, Icon],
+  imports: [CdkDropListGroup, CdkDropList, CdkDrag, CdkDragPlaceholder, TaskQuickAdd, TaskViewSwitch, Avatar, Icon],
   template: `
-    <p class="hand mb-3 text-sm">Arrastra las tarjetas entre columnas para cambiar su estado ↓</p>
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <p class="hand text-sm">
+        @if (canEdit()) {
+          Arrastra las tarjetas entre columnas para cambiar su estado ↓
+        } @else {
+          Así va el trabajo del proyecto.
+        }
+      </p>
+      <app-task-view-switch current="tablero" />
+    </div>
     <div cdkDropListGroup class="-mx-4 flex gap-4 overflow-x-auto px-4 pb-6 lg:mx-0 lg:px-0">
       @for (col of columns(); track col.status) {
         <section class="flex w-72 shrink-0 flex-col rounded-2xl bg-ink/[0.045] lg:w-auto lg:min-w-60 lg:flex-1">
@@ -110,6 +120,10 @@ import { Icon } from '../../shared/ui/icon';
 })
 export class Kanban {
   readonly projectId = input.required<string>();
+
+  constructor() {
+    inject(TaskViewService).set('tablero');
+  }
 
   protected readonly session = inject(SessionService);
   protected readonly panel = inject(TaskPanelService);

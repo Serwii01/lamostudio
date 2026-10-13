@@ -43,7 +43,14 @@ import { FilesBoard } from '../files/files-board';
               <span class="truncate">{{ p.name }}</span>
             </a>
           }
-          <div class="ml-auto flex items-center gap-1">
+          <span class="ml-auto hidden items-center gap-1 text-xs whitespace-nowrap sm:inline-flex" aria-live="polite">
+            @if (justSaved()) {
+              <app-icon name="check-hand" [size]="15" [stroke]="2.4" class="text-moss" /> <span class="text-moss">Guardado</span>
+            } @else if (canEdit()) {
+              <span class="text-ink-faint">Los cambios se guardan solos</span>
+            }
+          </span>
+          <div class="ml-2 flex items-center gap-1">
             @if (canEdit()) {
               <button class="btn btn-ghost btn-sm hover:text-coral" (click)="remove(t)"><app-icon name="trash" [size]="14" /> Eliminar</button>
             }
@@ -288,6 +295,16 @@ export class TaskPanel {
   private readonly projects = inject(ProjectService);
   private readonly notes = inject(NoteService);
   private readonly files = inject(FileService);
+  private savedTimer?: ReturnType<typeof setTimeout>;
+
+  /** Confirmación visual breve tras cada cambio (no hay botón «Guardar»). */
+  protected readonly justSaved = signal(false);
+
+  private flashSaved(): void {
+    this.justSaved.set(true);
+    clearTimeout(this.savedTimer);
+    this.savedTimer = setTimeout(() => this.justSaved.set(false), 1800);
+  }
 
   protected readonly status = TASK_STATUS;
   protected readonly fill = TONE_FILL;
@@ -328,6 +345,7 @@ export class TaskPanel {
 
   protected update(task: Task, patch: TaskPatch): void {
     void this.tasks.update(task, patch);
+    this.flashSaved();
   }
 
   protected setTitle(task: Task, value: string): void {

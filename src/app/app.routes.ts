@@ -15,10 +15,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
       },
       {
-        path: 'mis-tareas',
-        title: 'Mis tareas · Lamo Studio',
+        path: 'tareas',
+        title: 'Tareas · Lamo Studio',
         loadComponent: () => import('./features/my-tasks/my-tasks').then((m) => m.MyTasks),
       },
+      { path: 'mis-tareas', redirectTo: 'tareas' },
       {
         path: 'proyectos',
         title: 'Proyectos · Lamo Studio',
@@ -41,12 +42,12 @@ export const routes: Routes = [
           },
           {
             path: 'tareas',
-            canActivate: [requireModule('tasks')],
+            canActivate: [requireModule('tasks', 'kanban')],
             loadComponent: () => import('./features/project/task-list').then((m) => m.TaskList),
           },
           {
             path: 'tablero',
-            canActivate: [requireModule('kanban')],
+            canActivate: [requireModule('tasks', 'kanban')],
             loadComponent: () => import('./features/project/kanban').then((m) => m.Kanban),
           },
           {

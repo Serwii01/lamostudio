@@ -82,17 +82,17 @@ interface Alert {
         <p class="text-ink-soft">Proyectos activos</p>
         <p class="mt-3 font-display text-4xl font-bold">{{ projects.active().length }}</p>
       </a>
-      <div class="card p-5">
+      <a routerLink="/tareas" [queryParams]="{ de: 'equipo', filtro: 'revision' }" class="card p-5 transition-colors hover:border-ink-faint">
         <p class="text-ink-soft">Para revisar</p>
         <p class="mt-3 font-display text-4xl font-bold" [class.text-honey]="metrics().review">{{ metrics().review }}</p>
-      </div>
-      <div class="card p-5">
+      </a>
+      <a routerLink="/tareas" [queryParams]="{ de: 'equipo', filtro: 'retraso' }" class="card p-5 transition-colors hover:border-ink-faint">
         <p class="text-ink-soft">Con retraso</p>
         <p class="mt-3 font-display text-4xl font-bold" [class.text-coral]="metrics().overdue">{{ metrics().overdue }}</p>
         @if (metrics().blocked) {
           <p class="mt-1 text-xs text-ink-faint">y {{ metrics().blocked }} {{ metrics().blocked === 1 ? 'bloqueada' : 'bloqueadas' }}</p>
         }
-      </div>
+      </a>
       @if (session.can('team.viewLoad')) {
         <a routerLink="/equipo" class="card p-5 transition-colors hover:border-ink-faint">
           <p class="text-ink-soft">Carga del equipo</p>
@@ -129,7 +129,7 @@ interface Alert {
           }
         </div>
         @if (scope() === 'mine') {
-          <a routerLink="/mis-tareas" class="block border-t border-line/60 px-5 py-3 text-xs text-ink-soft hover:text-ink">Ver todas mis tareas →</a>
+          <a routerLink="/tareas" class="block border-t border-line/60 px-5 py-3 text-xs text-ink-soft hover:text-ink">Ver todas mis tareas →</a>
         }
       </section>
 
