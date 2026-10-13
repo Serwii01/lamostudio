@@ -37,6 +37,13 @@ Para ver la app con otro rol (producción, colaborador, cliente…), cambia de u
   vídeo, audio y PDF, y enlaces a Google Drive, Dropbox, Frame.io, Vimeo, YouTube o Figma para brutos pesados.
   En la demo el contenido se guarda en IndexedDB del navegador.
 - **Deshacer** al borrar tareas, notas y archivos, en lugar de diálogos de confirmación.
+- **Teclado**: paleta de comandos (`Ctrl/⌘+K`), chuleta de atajos (`?`), `T` nueva tarea, `N` nota,
+  `P` proyecto, `U` subir archivos, `G` + letra para ir a cada sección, `1–4` pestañas del proyecto,
+  `V` lista/tablero, `J`/`K` para recorrer tareas, `X` hecha, `Shift+←/→` mover de columna,
+  `Supr` eliminar y `Ctrl/⌘+Z` deshacer. Con una tarea abierta, `1–4` cambian su estado.
+- **Arrastrar y soltar**: entre columnas del tablero y entre grupos de la lista; tareas y notas sobre un
+  proyecto de la barra lateral para moverlas; archivos del ordenador sobre una tarea para adjuntarlos; y
+  pestañas en Ajustes para ordenarlas.
 - **Notas rápidas** (tecla `N` en cualquier pantalla), privadas o compartidas, convertibles en tarea.
 - **Actividad** registrada para cada acción relevante.
 - **Equipo** con capacidad semanal frente a horas planificadas.

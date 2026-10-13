@@ -29,6 +29,14 @@ export class ToastService {
     this.push({ text, tone: 'error' }, 7000);
   }
 
+  /** Ctrl+Z: ejecuta el «Deshacer» del aviso más reciente que lo tenga. */
+  undoLast(): boolean {
+    const toast = [...this.toasts()].reverse().find((t) => t.action?.label === 'Deshacer');
+    if (!toast) return false;
+    this.runAction(toast);
+    return true;
+  }
+
   runAction(toast: Toast): void {
     toast.action?.run();
     this.dismiss(toast.id);
@@ -111,4 +119,35 @@ export class NewTaskService {
   close(): void {
     this.isOpen.set(false);
   }
+}
+
+/** Id de la zona de soltar de cada proyecto en la barra lateral (arrastrar tareas y notas). */
+export const projectDropId = (projectId: Id) => `drop-project-${projectId}`;
+
+/**
+ * Estado compartido de la «capa de mando»: paleta de comandos, chuleta de atajos y
+ * peticiones que el teclado hace a componentes concretos (enfocar la búsqueda, abrir
+ * el selector de archivos). Las peticiones son contadores: cada incremento es una orden.
+ */
+@Injectable({ providedIn: 'root' })
+export class CommandUiService {
+  readonly paletteOpen = signal(false);
+  readonly helpOpen = signal(false);
+  readonly focusSearch = signal(0);
+  readonly pickFiles = signal(0);
+  /** Primera tecla de una combinación en curso (p. ej. «G»), para mostrarla en pantalla. */
+  readonly pendingChord = signal<string | null>(null);
+}
+
+export interface ProjectTab {
+  label: string;
+  path: string;
+}
+
+/** Pestañas del proyecto abierto, para los atajos 1–4 y la paleta de comandos. */
+@Injectable({ providedIn: 'root' })
+export class ProjectContextService {
+  readonly projectId = signal<Id | null>(null);
+  readonly tabs = signal<ProjectTab[]>([]);
+  readonly section = signal<string>('');
 }

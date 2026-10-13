@@ -5,17 +5,19 @@ import { Task, TaskStatus } from '../../core/models';
 import { FileService } from '../../core/services/files';
 import { SessionService } from '../../core/services/session';
 import { TaskService } from '../../core/services/tasks';
-import { TaskPanelService, TaskViewService } from '../../core/services/ui-state';
+import { TaskPanelService, TaskViewService, projectDropId } from '../../core/services/ui-state';
+import { ProjectService } from '../../core/services/projects';
 import { daysFromToday, relativeDue } from '../../core/utils/dates';
 import { TaskQuickAdd } from '../../shared/task-quick-add';
 import { TaskViewSwitch } from '../../shared/task-view-switch';
+import { TaskFileDrop } from '../../shared/task-file-drop';
 import { Avatar } from '../../shared/ui/avatar';
 import { Icon } from '../../shared/ui/icon';
 
 @Component({
   selector: 'app-kanban',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CdkDropListGroup, CdkDropList, CdkDrag, CdkDragPlaceholder, TaskQuickAdd, TaskViewSwitch, Avatar, Icon],
+  imports: [CdkDropListGroup, CdkDropList, CdkDrag, CdkDragPlaceholder, TaskQuickAdd, TaskViewSwitch, TaskFileDrop, Avatar, Icon],
   template: `
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
       <p class="hand text-sm">
@@ -55,6 +57,7 @@ import { Icon } from '../../shared/ui/icon';
             cdkDropList
             [id]="'col-' + col.status"
             [cdkDropListData]="col.status"
+            [cdkDropListConnectedTo]="sidebarDrops()"
             [cdkDropListDisabled]="!canEdit()"
             (cdkDropListDropped)="drop($event)"
             class="relative flex min-h-32 flex-1 flex-col gap-2.5 px-2.5 pb-3"
@@ -68,7 +71,10 @@ import { Icon } from '../../shared/ui/icon';
               <article
                 cdkDrag
                 [cdkDragData]="t"
-                class="relative cursor-grab rounded-xl border border-line bg-surface p-3.5 transition-[border-color,box-shadow] hover:border-ink-faint hover:shadow-md hover:shadow-ink/5 active:cursor-grabbing"
+                [attr.data-task-id]="t.id"
+                [appTaskFileDrop]="t"
+                class="relative cursor-grab rounded-xl border border-line bg-surface p-3.5 transition-[border-color,box-shadow] hover:border-ink-faint hover:shadow-md hover:shadow-ink/5 focus-visible:border-shu focus-visible:outline-none active:cursor-grabbing"
+                [attr.title]="canEdit() ? 'Arrastra para moverla · Shift + ← → con el teclado' : null"
                 tabindex="0"
                 (click)="panel.open(t.id)"
                 (keydown.enter)="panel.open(t.id)"
@@ -129,6 +135,15 @@ export class Kanban {
   protected readonly panel = inject(TaskPanelService);
   private readonly tasks = inject(TaskService);
   private readonly files = inject(FileService);
+  private readonly projects = inject(ProjectService);
+
+  /** Zonas de la barra lateral donde soltar una tarjeta para moverla a otro proyecto. */
+  protected readonly sidebarDrops = computed(() =>
+    this.projects
+      .active()
+      .filter((p) => p.id !== this.projectId())
+      .map((p) => projectDropId(p.id)),
+  );
 
   protected readonly status = TASK_STATUS;
   protected readonly priority = PRIORITY;

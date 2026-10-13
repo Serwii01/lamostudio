@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, linkedSignal, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, inject, input, linkedSignal, signal, untracked, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { FileAsset, FileKind } from '../../core/models';
@@ -6,7 +6,7 @@ import { FileService } from '../../core/services/files';
 import { ProjectService } from '../../core/services/projects';
 import { SessionService } from '../../core/services/session';
 import { TaskService } from '../../core/services/tasks';
-import { TaskPanelService, ToastService } from '../../core/services/ui-state';
+import { CommandUiService, TaskPanelService, ToastService } from '../../core/services/ui-state';
 import { timeAgo } from '../../core/utils/dates';
 import { FILE_KIND_META, MAX_UPLOAD_MB, formatBytes } from '../../core/utils/files';
 import { normalize } from '../../core/utils/text';
@@ -303,7 +303,19 @@ export class FilesBoard {
     );
   });
 
+  private readonly picker = viewChild.required<ElementRef<HTMLInputElement>>('picker');
+
   constructor() {
+    // «U» (o «Subir archivos» en la paleta): abre el selector del tablero completo, no del compacto.
+    const ui = inject(CommandUiService);
+    const initial = ui.pickFiles();
+    effect(() => {
+      const request = ui.pickFiles();
+      if (request !== initial && !this.compact() && untracked(() => this.canUpload())) {
+        this.picker().nativeElement.click();
+      }
+    });
+
     void navigator.storage?.estimate?.().then(({ usage }) => {
       if (usage) this.storage.set(`${formatBytes(usage)} usados en este navegador`);
     });

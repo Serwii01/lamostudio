@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, linkedSignal, signal } from '@angular/core';
+import { CdkDrag, CdkDropList } from '@angular/cdk/drag-drop';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Id, NoteVisibility, QuickNote } from '../../core/models';
 import { NoteService } from '../../core/services/notes';
 import { ProjectService } from '../../core/services/projects';
 import { SessionService } from '../../core/services/session';
-import { TaskPanelService, ToastService } from '../../core/services/ui-state';
+import { TaskPanelService, ToastService, projectDropId } from '../../core/services/ui-state';
 import { timeAgo } from '../../core/utils/dates';
 import { normalize } from '../../core/utils/text';
 import { Avatar } from '../../shared/ui/avatar';
@@ -27,7 +28,7 @@ const VISIBILITY_LABEL: Record<NoteVisibility, string> = {
 @Component({
   selector: 'app-notes-board',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, RouterLink, Avatar, Empty, Icon],
+  imports: [FormsModule, CdkDropList, CdkDrag, RouterLink, Avatar, Empty, Icon],
   template: `
     @if (!projectId()) {
       <header class="mb-6">
@@ -72,9 +73,21 @@ const VISIBILITY_LABEL: Record<NoteVisibility, string> = {
           </label>
         </div>
 
-        <div class="columns-1 gap-4 md:columns-2 2xl:columns-3">
+        <div
+          class="columns-1 gap-4 md:columns-2 2xl:columns-3"
+          cdkDropList
+          [cdkDropListSortingDisabled]="true"
+          [cdkDropListConnectedTo]="sidebarDrops()"
+        >
           @for (n of filtered(); track n.id) {
-            <article class="card relative mb-5 break-inside-avoid p-5 transition-colors hover:border-ink-faint">
+            <article
+              cdkDrag
+              [cdkDragData]="n"
+              [cdkDragDisabled]="!canEdit(n) || editingId() === n.id"
+              class="card relative mb-5 break-inside-avoid p-5 transition-colors hover:border-ink-faint"
+              [class.cursor-grab]="canEdit(n) && editingId() !== n.id"
+              [attr.title]="canEdit(n) ? 'Arrastra la nota a un proyecto de la izquierda para moverla' : null"
+            >
               @if (n.pinned) {
                 <span class="absolute -top-1.5 left-6 size-3 rounded-full bg-shu ring-4 ring-paper" title="Fijada"></span>
               }
@@ -160,6 +173,8 @@ export class NotesBoard {
 
   protected readonly session = inject(SessionService);
   protected readonly projects = inject(ProjectService);
+  /** Soltar una nota sobre un proyecto de la barra lateral la asigna a ese proyecto. */
+  protected readonly sidebarDrops = computed(() => this.projects.active().map((p) => projectDropId(p.id)));
   protected readonly notes = inject(NoteService);
   protected readonly panel = inject(TaskPanelService);
   private readonly toast = inject(ToastService);

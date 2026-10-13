@@ -1,7 +1,7 @@
 import { Injectable, computed, inject } from '@angular/core';
 import { TASK_STATUS, isTaskDone } from '../catalog';
 import { Id, Task, TaskStatus } from '../models';
-import { NewTask, TaskPatch, TaskRepository } from '../data/repositories';
+import { FileRepository, NewTask, ProjectRepository, TaskPatch, TaskRepository } from '../data/repositories';
 import { daysFromToday } from '../utils/dates';
 import { newId } from '../utils/text';
 import { ActivityService } from './activity';
@@ -17,7 +17,10 @@ export class TaskService {
   private readonly repo = inject(TaskRepository);
   private readonly activity = inject(ActivityService);
   private readonly session = inject(SessionService);
-  private readonly deletes = new PendingDeletes<Task>(inject(ToastService));
+  private readonly toast = inject(ToastService);
+  private readonly projectRepo = inject(ProjectRepository);
+  private readonly fileRepo = inject(FileRepository);
+  private readonly deletes = new PendingDeletes<Task>(this.toast);
 
   readonly all = this.deletes.filter(this.repo.tasks);
 
@@ -99,6 +102,31 @@ export class TaskService {
     };
     await this.repo.update(task.id, { comments: [...task.comments, comment] });
     this.activity.log('task.commented', { id: task.id, label: task.title }, { projectId: task.projectId });
+  }
+
+  /**
+   * Lleva la tarea (y sus adjuntos) a otro proyecto, al final de su columna.
+   * Se usa al arrastrarla sobre un proyecto de la barra lateral; se puede deshacer.
+   */
+  async moveToProject(task: Task, projectId: Id): Promise<void> {
+    const target = this.projectRepo.projects().find((p) => p.id === projectId);
+    if (!target || task.projectId === projectId) return;
+    const from = { projectId: task.projectId, order: task.order };
+    const order =
+      this.all()
+        .filter((t) => t.projectId === projectId && t.status === task.status)
+        .reduce((max, t) => Math.max(max, t.order), -1) + 1;
+    const attached = this.fileRepo.files().filter((f) => f.taskId === task.id);
+    await this.repo.update(task.id, { projectId, order });
+    await Promise.all(attached.map((f) => this.fileRepo.update(f.id, { projectId })));
+    this.activity.log('task.moved', { id: task.id, label: task.title }, { projectId, detail: target.name });
+    this.toast.show(`«${task.title.slice(0, 32)}» movida a ${target.name}`, {
+      label: 'Deshacer',
+      run: () => {
+        void this.repo.update(task.id, from);
+        for (const f of attached) void this.fileRepo.update(f.id, { projectId: from.projectId });
+      },
+    });
   }
 
   /** Oculta la tarea y la borra pasados unos segundos si no se deshace. */

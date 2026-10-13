@@ -20,7 +20,8 @@ export class NoteService {
   private readonly taskRepo = inject(TaskRepository);
   private readonly session = inject(SessionService);
   private readonly activity = inject(ActivityService);
-  private readonly deletes = new PendingDeletes<QuickNote>(inject(ToastService));
+  private readonly toast = inject(ToastService);
+  private readonly deletes = new PendingDeletes<QuickNote>(this.toast);
   private readonly notes = this.deletes.filter(this.repo.notes);
 
   /** Notas visibles para el usuario actual: fijadas primero, luego las más recientes. */
@@ -43,6 +44,14 @@ export class NoteService {
 
   update(note: QuickNote, patch: NotePatch): Promise<void> {
     return this.repo.update(note.id, patch);
+  }
+
+  /** Asigna la nota a otro proyecto (al arrastrarla a la barra lateral); se puede deshacer. */
+  moveToProject(note: QuickNote, projectId: Id, projectName: string): void {
+    if (note.projectId === projectId) return;
+    const before = { projectId: note.projectId, visibility: note.visibility };
+    void this.repo.update(note.id, { projectId, visibility: note.visibility === 'private' ? 'private' : 'project' });
+    this.toast.show(`Nota movida a ${projectName}`, { label: 'Deshacer', run: () => void this.repo.update(note.id, before) });
   }
 
   /** Oculta la nota y la borra pasados unos segundos si no se deshace. */

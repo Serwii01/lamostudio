@@ -1,14 +1,22 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
+import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Permission, ROLE_LABEL } from '../core/catalog';
+import { Project, QuickNote, Task } from '../core/models';
+import { NoteService } from '../core/services/notes';
+import { TaskService } from '../core/services/tasks';
+import { IS_MAC } from '../core/shortcuts';
 import { ProjectService } from '../core/services/projects';
 import { SessionService } from '../core/services/session';
-import { NewTaskService, QuickCaptureService, TaskPanelService, ToastService } from '../core/services/ui-state';
+import { CommandUiService, NewTaskService, QuickCaptureService, TaskPanelService, ToastService, projectDropId } from '../core/services/ui-state';
 import { TaskPanel } from '../features/task-panel/task-panel';
 import { Avatar } from '../shared/ui/avatar';
 import { Icon } from '../shared/ui/icon';
 import { LogoMark } from '../shared/ui/logo';
+import { CommandPalette } from './command-palette';
 import { GlobalSearch } from './global-search';
+import { KeyboardShortcuts } from './keyboard-shortcuts';
+import { ShortcutsHelp } from './shortcuts-help';
 import { NewTaskDialog } from './new-task-dialog';
 import { QuickCapture } from './quick-capture';
 
@@ -33,8 +41,22 @@ const NAV: NavItem[] = [
 @Component({
   selector: 'app-shell',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, Icon, Avatar, LogoMark, GlobalSearch, NewTaskDialog, QuickCapture, TaskPanel],
-  host: { '(document:keydown)': 'onKeydown($event)' },
+  imports: [
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
+    CdkDropList,
+    Icon,
+    Avatar,
+    LogoMark,
+    GlobalSearch,
+    NewTaskDialog,
+    QuickCapture,
+    TaskPanel,
+    KeyboardShortcuts,
+    CommandPalette,
+    ShortcutsHelp,
+  ],
   template: `
     <div class="min-h-dvh lg:pl-64">
       <!-- Barra lateral -->
@@ -81,7 +103,16 @@ const NAV: NavItem[] = [
             </div>
             <ul class="space-y-0.5">
               @for (p of activeProjects(); track p.id) {
-                <li>
+                <!-- Cada proyecto es una zona donde soltar tareas y notas para moverlas. -->
+                <li
+                  cdkDropList
+                  [id]="dropId(p.id)"
+                  [cdkDropListData]="p"
+                  [cdkDropListSortingDisabled]="true"
+                  [cdkDropListEnterPredicate]="acceptsDrop"
+                  (cdkDropListDropped)="dropOnProject($event)"
+                  class="rounded-full outline-offset-[-2px] transition-colors [&_.cdk-drag-placeholder]:hidden [&.cdk-drop-list-dragging]:bg-shu/10 [&.cdk-drop-list-dragging]:outline-2 [&.cdk-drop-list-dragging]:outline-shu [&.cdk-drop-list-receiving]:outline-dashed [&.cdk-drop-list-receiving]:outline-1 [&.cdk-drop-list-receiving]:outline-ink/30"
+                >
                   <a
                     [routerLink]="['/proyectos', p.id]"
                     routerLinkActive="is-active"
@@ -99,10 +130,10 @@ const NAV: NavItem[] = [
 
         <div class="space-y-3 border-t border-line/70 px-4 py-4">
           <p class="flex flex-wrap items-center gap-x-3 gap-y-1 px-1 text-[11px] text-ink-faint">
+            <button class="cursor-pointer hover:text-ink" (click)="ui.paletteOpen.set(true)"><kbd class="kbd">{{ modKey }}</kbd> <kbd class="kbd">K</kbd> comandos</button>
+            <button class="cursor-pointer hover:text-ink" (click)="ui.helpOpen.set(true)"><kbd class="kbd">?</kbd> atajos</button>
             <span><kbd class="kbd">T</kbd> tarea</span>
             <span><kbd class="kbd">N</kbd> nota</span>
-            <span><kbd class="kbd">/</kbd> buscar</span>
-            <span><kbd class="kbd">Esc</kbd> cerrar</span>
           </p>
           <div class="flex items-center gap-2">
             <details class="group/user relative min-w-0 flex-1" #userMenu>
@@ -151,6 +182,11 @@ const NAV: NavItem[] = [
         </button>
         <app-global-search class="max-w-md min-w-0 flex-1" />
         <div class="ml-auto flex items-center gap-2">
+          <button class="btn btn-ghost hidden h-9 gap-2 px-3 lg:inline-flex" title="Paleta de comandos: haz cualquier cosa escribiendo" (click)="ui.paletteOpen.set(true)">
+            <app-icon name="bolt" [size]="15" />
+            <span class="text-xs">Comandos</span>
+            <span class="flex gap-0.5"><kbd class="kbd">{{ modKey }}</kbd><kbd class="kbd">K</kbd></span>
+          </button>
           @if (session.can('note.create')) {
             <button class="btn btn-outline px-3 sm:px-4" title="Apuntar una idea (tecla N)" (click)="capture.open()">
               <app-icon name="pen" />
@@ -171,14 +207,33 @@ const NAV: NavItem[] = [
       </main>
     </div>
 
-    <app-task-panel />
-
-    @if (capture.isOpen()) {
-      <app-quick-capture />
+    <!-- Piezas que solo hacen falta al usarlas: se cargan aparte para que la app abra antes. -->
+    @defer (when panel.openId(); prefetch on idle) {
+      <app-task-panel />
     }
 
-    @if (newTask.isOpen()) {
-      <app-new-task-dialog />
+    @defer (when capture.isOpen(); prefetch on idle) {
+      @if (capture.isOpen()) {
+        <app-quick-capture />
+      }
+    }
+
+    @defer (when newTask.isOpen(); prefetch on idle) {
+      @if (newTask.isOpen()) {
+        <app-new-task-dialog />
+      }
+    }
+
+    <app-keyboard-shortcuts />
+    @defer (when ui.paletteOpen(); prefetch on idle) {
+      @if (ui.paletteOpen()) {
+        <app-command-palette />
+      }
+    }
+    @defer (when ui.helpOpen(); prefetch on idle) {
+      @if (ui.helpOpen()) {
+        <app-shortcuts-help />
+      }
     }
 
     <div class="pointer-events-none fixed bottom-6 left-1/2 z-[60] flex -translate-x-1/2 flex-col items-center gap-2" aria-live="polite">
@@ -187,7 +242,12 @@ const NAV: NavItem[] = [
           <app-icon [name]="t.tone === 'error' ? 'alert' : 'check-hand'" [size]="18" [stroke]="t.tone === 'error' ? 1.8 : 2.4" class="shrink-0 text-shu" />
           <span class="min-w-0">{{ t.text }}</span>
           @if (t.action; as action) {
-            <button class="btn btn-sm h-8 shrink-0 bg-surface text-ink hover:bg-paper" (click)="toast.runAction(t)">{{ action.label }}</button>
+            <button class="btn btn-sm h-8 shrink-0 bg-surface text-ink hover:bg-paper" (click)="toast.runAction(t)">
+              {{ action.label }}
+              @if (action.label === 'Deshacer') {
+                <span class="hidden text-[10px] text-ink-faint sm:inline">{{ modKey }}+Z</span>
+              }
+            </button>
           }
         </div>
       }
@@ -199,36 +259,44 @@ export class AppShell {
   protected readonly capture = inject(QuickCaptureService);
   protected readonly toast = inject(ToastService);
   protected readonly newTask = inject(NewTaskService);
+  protected readonly ui = inject(CommandUiService);
+  protected readonly panel = inject(TaskPanelService);
   private readonly projects = inject(ProjectService);
-  private readonly panel = inject(TaskPanelService);
-  private readonly search = viewChild.required(GlobalSearch);
+  private readonly tasks = inject(TaskService);
+  private readonly notes = inject(NoteService);
 
   protected readonly nav = computed(() => NAV.filter((item) => !item.perm || this.session.can(item.perm)));
   protected readonly roleLabel = ROLE_LABEL;
+  protected readonly modKey = IS_MAC ? '⌘' : 'Ctrl';
   protected readonly navOpen = signal(false);
   protected readonly activeProjects = computed(() => this.projects.active());
   protected readonly canCreateTask = computed(() => this.session.can('task.edit') && this.activeProjects().length > 0);
+  protected readonly dropId = projectDropId;
+
+  /** Solo se aceptan tareas y notas que no estén ya en ese proyecto. */
+  protected readonly acceptsDrop = (drag: CdkDrag, drop: CdkDropList<Project>): boolean => {
+    const item = drag.data as Task | QuickNote | undefined;
+    return !!item && (isTask(item) || isNote(item)) && item.projectId !== drop.data.id && this.session.can('task.edit');
+  };
+
+  protected dropOnProject(event: CdkDragDrop<Project>): void {
+    if (event.previousContainer === event.container) return;
+    const item = event.item.data as Task | QuickNote;
+    const project = event.container.data;
+    if (isTask(item)) void this.tasks.moveToProject(item, project.id);
+    else if (isNote(item)) this.notes.moveToProject(item, project.id, project.name);
+  }
 
   protected switchUser(id: string, menu: HTMLDetailsElement): void {
     this.session.switchUser(id);
     menu.open = false;
   }
+}
 
-  protected onKeydown(event: KeyboardEvent): void {
-    const target = event.target;
-    const typing = target instanceof Element && !!target.closest('input, textarea, select, [contenteditable="true"]');
-    const busy = this.panel.openId() || this.capture.isOpen() || this.newTask.isOpen();
-    if (typing || busy || event.ctrlKey || event.metaKey || event.altKey) return;
-    const key = event.key.toLowerCase();
-    if (key === 'n' && this.session.can('note.create')) {
-      event.preventDefault();
-      this.capture.open();
-    } else if (key === 't' && this.canCreateTask()) {
-      event.preventDefault();
-      this.newTask.open();
-    } else if (event.key === '/') {
-      event.preventDefault();
-      this.search().focus();
-    }
-  }
+function isTask(item: object): item is Task {
+  return 'status' in item && 'subtasks' in item;
+}
+
+function isNote(item: object): item is QuickNote {
+  return 'content' in item && 'visibility' in item;
 }

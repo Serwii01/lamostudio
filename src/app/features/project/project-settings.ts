@@ -1,3 +1,4 @@
+import { CdkDrag, CdkDragDrop, CdkDropList, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ChangeDetectionStrategy, Component, computed, inject, input, linkedSignal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -36,7 +37,7 @@ function toDraft(project: Project | undefined): Draft {
 @Component({
   selector: 'app-project-settings',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, Avatar, Empty, Icon],
+  imports: [FormsModule, CdkDropList, CdkDrag, Avatar, Empty, Icon],
   template: `
     @if (!session.can('project.manage')) {
       <div class="card"><app-empty title="Sin permisos" hint="Solo producción, dirección o administración pueden configurar el proyecto." /></div>
@@ -103,15 +104,24 @@ function toDraft(project: Project | undefined): Draft {
         <div class="space-y-6 lg:col-span-2">
           <section class="card p-5">
             <h2 class="card-title">Módulos</h2>
-            <p class="mt-1 mb-3 text-ink-soft">Activa, oculta y ordena las pestañas del proyecto.</p>
-            <ul class="space-y-1">
+            <p class="mt-1 mb-3 text-ink-soft">Activa u oculta pestañas y arrástralas para cambiar su orden.</p>
+            <ul class="space-y-1" cdkDropList (cdkDropListDropped)="reorderModules(p, $event)">
               @for (id of p.moduleIds; track id; let i = $index, last = $last) {
-                <li class="flex items-center gap-2 rounded-lg bg-ink/[0.035] px-2 py-1.5">
+                <li
+                  cdkDrag
+                  [cdkDragDisabled]="id === 'overview'"
+                  cdkDragLockAxis="y"
+                  class="flex items-center gap-2 rounded-lg bg-ink/[0.035] px-2 py-1.5"
+                  [class.cursor-grab]="id !== 'overview'"
+                >
+                  <app-icon name="grip" [size]="14" [stroke]="3" class="text-ink-faint" [class.invisible]="id === 'overview'" />
                   <app-icon [name]="moduleById[id].icon" class="text-ink-soft" />
                   <span class="flex-1">
                     {{ moduleById[id].label }}
                     @if (!moduleById[id].built) {
                       <span class="text-xs text-ink-faint">· aparecerá al estar listo</span>
+                    } @else if (id === 'tasks' || id === 'kanban') {
+                      <span class="text-xs text-ink-faint">· vista {{ id === 'tasks' ? 'Lista' : 'Tablero' }} de la pestaña Tareas</span>
                     }
                   </span>
                   @if (id !== 'overview') {
@@ -222,6 +232,14 @@ export class ProjectSettings {
     const moduleIds = project.moduleIds.includes(id)
       ? project.moduleIds.filter((m) => m !== id)
       : [...project.moduleIds, id];
+    void this.projects.update(project, { moduleIds });
+  }
+
+  /** Arrastrar para ordenar; «Resumen» siempre queda la primera. */
+  protected reorderModules(project: Project, event: CdkDragDrop<unknown>): void {
+    if (event.previousIndex === event.currentIndex) return;
+    const moduleIds = [...project.moduleIds];
+    moveItemInArray(moduleIds, event.previousIndex, Math.max(1, event.currentIndex));
     void this.projects.update(project, { moduleIds });
   }
 

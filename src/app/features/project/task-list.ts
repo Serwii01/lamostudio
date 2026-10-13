@@ -1,16 +1,17 @@
+import { CdkDrag, CdkDragDrop, CdkDragPlaceholder, CdkDropList, CdkDropListGroup } from '@angular/cdk/drag-drop';
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TASK_STATUS, TASK_STATUS_ORDER, TONE_FILL, isTaskDone } from '../../core/catalog';
 import { Task, TaskStatus } from '../../core/models';
+import { ProjectService } from '../../core/services/projects';
 import { SessionService } from '../../core/services/session';
 import { TaskService } from '../../core/services/tasks';
+import { TaskViewService, projectDropId } from '../../core/services/ui-state';
 import { daysFromToday } from '../../core/utils/dates';
 import { normalize } from '../../core/utils/text';
 import { TaskQuickAdd } from '../../shared/task-quick-add';
 import { TaskRow } from '../../shared/task-row';
 import { TaskViewSwitch } from '../../shared/task-view-switch';
-import { TaskViewService } from '../../core/services/ui-state';
-import { Empty } from '../../shared/ui/badge';
 import { Icon } from '../../shared/ui/icon';
 
 type View = 'all' | 'mine' | 'week' | 'unassigned' | 'blocked';
@@ -24,13 +25,18 @@ const VIEWS: { id: View; label: string; test: (t: Task, userId: string) => boole
   { id: 'blocked', label: 'Bloqueadas', test: (t) => !!t.blocked },
 ];
 
+/**
+ * Lista de tareas agrupada por estado. Las filas se arrastran entre grupos (cambia
+ * el estado, como en el tablero) o sobre un proyecto de la barra lateral (se mueve).
+ * Los cuatro grupos están siempre presentes para poder soltar en cualquiera.
+ */
 @Component({
   selector: 'app-task-list',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TaskQuickAdd, TaskRow, TaskViewSwitch, Empty, Icon],
+  imports: [FormsModule, CdkDropListGroup, CdkDropList, CdkDrag, CdkDragPlaceholder, TaskQuickAdd, TaskRow, TaskViewSwitch, Icon],
   template: `
     <div class="flex flex-col-reverse gap-3 sm:flex-row sm:items-center">
-      @if (session.can('task.edit')) {
+      @if (canEdit()) {
         <app-task-quick-add class="flex-1" [projectId]="projectId()" />
       } @else {
         <span class="flex-1"></span>
@@ -42,35 +48,59 @@ const VIEWS: { id: View; label: string; test: (t: Task, userId: string) => boole
       @for (v of views; track v.id) {
         <button class="chip" [class.chip-active]="view() === v.id" (click)="view.set(v.id)">{{ v.label }}</button>
       }
-      <label class="ml-auto flex cursor-pointer items-center gap-2 text-ink-soft">
-        <input type="checkbox" class="size-4 accent-ink" [checked]="showDone()" (change)="showDone.set(!showDone())" />
-        Completadas
-      </label>
-      <label class="relative w-full sm:w-56">
+      <label class="relative ml-auto w-full sm:w-56">
         <span class="sr-only">Buscar en tareas</span>
         <app-icon name="search" class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ink-faint" />
-        <input class="input h-8 pl-9" placeholder="Buscar…" [(ngModel)]="query" />
+        <input class="input h-8 rounded-full pl-9" placeholder="Buscar…" [(ngModel)]="query" />
       </label>
     </div>
 
-    <div class="mt-4 space-y-4">
+    @if (canEdit()) {
+      <p class="hand mt-4 text-sm">
+        Arrastra una fila a otro grupo para cambiar su estado<span class="hidden lg:inline">, o a un proyecto de la izquierda para moverla</span>.
+      </p>
+    }
+
+    <div class="mt-3 space-y-4" cdkDropListGroup>
       @for (g of groups(); track g.status) {
         <section class="card overflow-hidden">
           <h2 class="flex items-center gap-2 border-b border-line/60 px-5 py-3.5 font-display font-bold">
             <span class="size-2 rounded-full" [class]="fill[status[g.status].tone]"></span>
             {{ status[g.status].label }}
-            <span class="count">{{ g.tasks.length }}</span>
+            <span class="count">{{ g.count }}</span>
+            @if (g.status === 'done') {
+              <button class="ml-auto cursor-pointer font-sans text-xs font-normal text-ink-soft hover:text-ink" (click)="showDone.set(!showDone())">
+                {{ showDone() ? 'Ocultar' : 'Mostrar' }}
+              </button>
+            }
           </h2>
-          <div class="divide-y divide-line/60">
+          <div
+            cdkDropList
+            [cdkDropListData]="g.status"
+            [cdkDropListConnectedTo]="sidebarDrops()"
+            [cdkDropListDisabled]="!canEdit()"
+            (cdkDropListDropped)="drop($event)"
+            class="min-h-12 divide-y divide-line/60"
+          >
             @for (t of g.tasks; track t.id) {
-              <app-task-row [task]="t" [showStatus]="false" />
+              <app-task-row
+                cdkDrag
+                [cdkDragData]="t"
+                [cdkDragDisabled]="!canEdit()"
+                [task]="t"
+                [showStatus]="false"
+                [draggable]="canEdit()"
+                class="bg-surface"
+              >
+                <div *cdkDragPlaceholder class="h-12 border-y-[1.5px] border-dashed border-shu/50 bg-shu/5"></div>
+              </app-task-row>
+            } @empty {
+              <p class="hand px-5 py-3 text-sm text-ink-faint">
+                {{ g.status === 'done' && g.count ? 'Ocultas · suelta aquí para completarla' : 'Nada aquí · suelta tareas para moverlas' }}
+              </p>
             }
           </div>
         </section>
-      } @empty {
-        <div class="card">
-          <app-empty title="No hay tareas en esta vista" hint="Cambia el filtro o añade una tarea nueva arriba." />
-        </div>
       }
     </div>
   `,
@@ -84,6 +114,7 @@ export class TaskList {
 
   protected readonly session = inject(SessionService);
   private readonly tasks = inject(TaskService);
+  private readonly projects = inject(ProjectService);
 
   protected readonly views = VIEWS;
   protected readonly status = TASK_STATUS;
@@ -91,18 +122,41 @@ export class TaskList {
   protected readonly view = signal<View>('all');
   protected readonly showDone = signal(false);
   protected readonly query = signal('');
+  protected readonly canEdit = computed(() => this.session.can('task.edit'));
+
+  /** Zonas de la barra lateral donde soltar para mover la tarea a otro proyecto. */
+  protected readonly sidebarDrops = computed(() =>
+    this.projects
+      .active()
+      .filter((p) => p.id !== this.projectId())
+      .map((p) => projectDropId(p.id)),
+  );
 
   protected readonly groups = computed(() => {
     const view = VIEWS.find((v) => v.id === this.view())!;
     const userId = this.session.currentUserId();
     const q = normalize(this.query());
-    const visible = this.tasks
+    const matching = this.tasks
       .byProject(this.projectId())
-      .filter((t) => (this.showDone() || !isTaskDone(t.status)) && view.test(t, userId))
-      .filter((t) => !q || normalize(`${t.title} ${t.tags.join(' ')}`).includes(q));
-    return TASK_STATUS_ORDER.map((status: TaskStatus) => ({
-      status,
-      tasks: visible.filter((t) => t.status === status),
-    })).filter((g) => g.tasks.length);
+      .filter((t) => view.test(t, userId) && (!q || normalize(`${t.title} ${t.tags.join(' ')}`).includes(q)));
+    return TASK_STATUS_ORDER.map((status: TaskStatus) => {
+      const all = matching.filter((t) => t.status === status);
+      const hidden = isTaskDone(status) && !this.showDone();
+      return { status, count: all.length, tasks: hidden ? [] : all };
+    });
   });
+
+  protected drop(event: CdkDragDrop<TaskStatus>): void {
+    const task = event.item.data as Task;
+    const target = event.container.data;
+    if (event.previousContainer === event.container && event.previousIndex === event.currentIndex) return;
+    const visible = this.groups().find((g) => g.status === target)!.tasks.map((t) => t.id).filter((id) => id !== task.id);
+    visible.splice(event.currentIndex, 0, task.id);
+    // Las tareas ocultas por el filtro conservan su orden relativo, detrás de las visibles.
+    const hidden = this.tasks
+      .byProject(this.projectId())
+      .filter((t) => t.status === target && !visible.includes(t.id))
+      .map((t) => t.id);
+    void this.tasks.move(task, target, [...visible, ...hidden]);
+  }
 }

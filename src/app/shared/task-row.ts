@@ -9,21 +9,29 @@ import { TaskPanelService } from '../core/services/ui-state';
 import { daysFromToday, relativeDue } from '../core/utils/dates';
 import { Avatar } from './ui/avatar';
 import { Badge } from './ui/badge';
+import { TaskFileDrop } from './task-file-drop';
 import { Icon } from './ui/icon';
 
 @Component({
   selector: 'app-task-row',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Avatar, Badge, Icon],
+  imports: [Avatar, Badge, Icon, TaskFileDrop],
   host: { class: 'block' },
   template: `
     <div
-      class="group flex cursor-pointer items-center gap-3 px-5 py-3 transition-colors hover:bg-ink/[0.03] focus-visible:bg-ink/[0.04]"
+      class="group relative flex cursor-pointer items-center gap-3 px-5 py-3 transition-colors hover:bg-ink/[0.03] focus-visible:bg-shu/[0.06] focus-visible:outline-offset-[-2px]"
       role="button"
       tabindex="0"
+      [attr.data-task-id]="task().id"
+      [appTaskFileDrop]="task()"
       (click)="panel.open(task().id)"
       (keydown.enter)="panel.open(task().id)"
     >
+      @if (draggable()) {
+        <span class="absolute top-1/2 left-1 -translate-y-1/2 text-ink-faint/60 opacity-0 transition-opacity group-hover:opacity-100" title="Arrastra para moverla" aria-hidden="true">
+          <app-icon name="grip" [size]="14" [stroke]="3" />
+        </span>
+      }
       <button
         type="button"
         class="grid size-[22px] shrink-0 cursor-pointer place-items-center rounded-full border-[1.5px] transition-colors disabled:cursor-default"
@@ -82,6 +90,8 @@ export class TaskRow {
   readonly showProject = input(false);
   /** Se oculta cuando la lista ya está agrupada por estado. */
   readonly showStatus = input(true);
+  /** Muestra el asa de arrastre al pasar el ratón (cuando la fila se puede arrastrar). */
+  readonly draggable = input(false);
 
   protected readonly tasks = inject(TaskService);
   protected readonly panel = inject(TaskPanelService);

@@ -6,7 +6,8 @@ export type ProjectPatch = Partial<Omit<Project, 'id' | 'workspaceId' | 'created
 
 export type NewTask = Pick<Task, 'projectId' | 'title'> &
   Partial<Omit<Task, 'id' | 'projectId' | 'title' | 'createdAt' | 'updatedAt'>>;
-export type TaskPatch = Partial<Omit<Task, 'id' | 'projectId' | 'createdAt' | 'updatedAt'>>;
+/** Incluye projectId para poder mover una tarea a otro proyecto. */
+export type TaskPatch = Partial<Omit<Task, 'id' | 'createdAt' | 'updatedAt'>>;
 
 export type NewNote = Pick<QuickNote, 'authorId' | 'content'> &
   Partial<Pick<QuickNote, 'projectId' | 'title' | 'visibility' | 'pinned'>>;
@@ -15,7 +16,7 @@ export type NotePatch = Partial<Omit<QuickNote, 'id' | 'workspaceId' | 'authorId
 export type NewActivity = Omit<ActivityEntry, 'id' | 'workspaceId' | 'createdAt'>;
 
 export type NewFile = Omit<FileAsset, 'id' | 'workspaceId' | 'createdAt'>;
-export type FilePatch = Partial<Pick<FileAsset, 'name' | 'taskId'>>;
+export type FilePatch = Partial<Pick<FileAsset, 'name' | 'taskId' | 'projectId'>>;
 
 /*
  * Contratos de acceso a datos.

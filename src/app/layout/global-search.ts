@@ -1,11 +1,11 @@
-import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, inject, signal, untracked, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Id } from '../core/models';
 import { NoteService } from '../core/services/notes';
 import { ProjectService } from '../core/services/projects';
 import { TaskService } from '../core/services/tasks';
-import { TaskPanelService } from '../core/services/ui-state';
+import { CommandUiService, TaskPanelService } from '../core/services/ui-state';
 import { normalize } from '../core/utils/text';
 import { Icon } from '../shared/ui/icon';
 
@@ -105,6 +105,13 @@ export class GlobalSearch {
         .slice(0, 4),
     };
   });
+
+  constructor() {
+    const ui = inject(CommandUiService);
+    effect(() => {
+      if (ui.focusSearch()) untracked(() => this.focus());
+    });
+  }
 
   focus(): void {
     this.field().nativeElement.focus();

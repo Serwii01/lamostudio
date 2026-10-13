@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, input } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { CanActivateFn, NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { filter, map } from 'rxjs';
@@ -6,7 +6,7 @@ import { MODULE_BY_ID, PROJECT_STATUS, PROJECT_STATUS_ORDER, PROJECT_TYPE_LABEL,
 import { Project, ProjectModuleId, ProjectStatus } from '../../core/models';
 import { ProjectService } from '../../core/services/projects';
 import { SessionService } from '../../core/services/session';
-import { TaskViewService } from '../../core/services/ui-state';
+import { ProjectContextService, TaskViewService } from '../../core/services/ui-state';
 import { formatShortDate } from '../../core/utils/dates';
 import { AvatarStack } from '../../shared/ui/avatar';
 import { Badge, Empty } from '../../shared/ui/badge';
@@ -79,6 +79,7 @@ export function requireModule(...moduleIds: ProjectModuleId[]): CanActivateFn {
                 [routerLink]="m.path"
                 [class.is-active]="m.match.includes(section())"
                 [attr.aria-current]="m.match.includes(section()) ? 'page' : null"
+                [attr.title]="m.label + ' · tecla ' + ($index + 1)"
                 class="group relative -mb-px inline-flex h-11 items-center gap-1.5 px-3.5 whitespace-nowrap text-ink-soft transition-colors hover:text-ink [&.is-active]:font-medium [&.is-active]:text-ink"
               >
                 <app-icon [name]="m.icon" [size]="15" />
@@ -156,6 +157,20 @@ export class ProjectShell {
     }
     return tabs;
   });
+
+  constructor() {
+    const context = inject(ProjectContextService);
+    effect(() => {
+      context.projectId.set(this.project()?.id ?? null);
+      context.tabs.set(this.tabs().map((t) => ({ label: t.label, path: t.path })));
+      context.section.set(this.section());
+    });
+    inject(DestroyRef).onDestroy(() => {
+      context.projectId.set(null);
+      context.tabs.set([]);
+      context.section.set('');
+    });
+  }
 
   protected readonly statusClass = computed(() => TONE_BADGE[PROJECT_STATUS[this.project()?.status ?? 'draft'].tone]);
 

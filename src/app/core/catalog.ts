@@ -378,4 +378,5 @@ export const ACTIVITY_PHRASE: Record<ActivityVerb, (detail?: string) => string> 
   'file.uploaded': () => 'subió',
   'file.linked': () => 'enlazó',
   'file.deleted': () => 'eliminó el archivo',
+  'task.moved': (d) => `llevó al proyecto «${d}» la tarea`,
 };

@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import { CdkDrag, CdkDropList } from '@angular/cdk/drag-drop';
 import { RouterLink } from '@angular/router';
 import { isTaskDone } from '../../core/catalog';
 import { Task } from '../../core/models';
 import { ProjectService } from '../../core/services/projects';
 import { SessionService } from '../../core/services/session';
 import { TaskService } from '../../core/services/tasks';
-import { NewTaskService } from '../../core/services/ui-state';
+import { NewTaskService, projectDropId } from '../../core/services/ui-state';
 import { daysFromToday } from '../../core/utils/dates';
 import { TaskRow } from '../../shared/task-row';
 import { Empty } from '../../shared/ui/badge';
@@ -35,7 +36,7 @@ const FILTERS: { id: Filter; label: string; test: (t: Task) => boolean }[] = [
 @Component({
   selector: 'app-my-tasks',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, TaskRow, Empty, Icon],
+  imports: [RouterLink, CdkDropList, CdkDrag, TaskRow, Empty, Icon],
   template: `
     <header class="flex flex-wrap items-end justify-between gap-4">
       <div>
@@ -93,9 +94,15 @@ const FILTERS: { id: Filter; label: string; test: (t: Task) => boolean }[] = [
             {{ g.label }}
             <span class="count">{{ g.tasks.length }}</span>
           </h2>
-          <div class="divide-y divide-line/60">
+          <div
+            cdkDropList
+            [cdkDropListSortingDisabled]="true"
+            [cdkDropListConnectedTo]="sidebarDrops()"
+            [cdkDropListDisabled]="!canEdit()"
+            class="divide-y divide-line/60"
+          >
             @for (t of g.tasks; track t.id) {
-              <app-task-row [task]="t" [showProject]="true" />
+              <app-task-row cdkDrag [cdkDragData]="t" [task]="t" [showProject]="true" [draggable]="canEdit()" class="bg-surface" />
             }
           </div>
         </section>
@@ -131,6 +138,10 @@ export class MyTasks {
   protected readonly newTask = inject(NewTaskService);
   private readonly tasks = inject(TaskService);
   private readonly projects = inject(ProjectService);
+
+  protected readonly canEdit = computed(() => this.session.can('task.edit'));
+  /** Soltar una fila sobre un proyecto de la barra lateral la mueve allí. */
+  protected readonly sidebarDrops = computed(() => this.projects.active().map((p) => projectDropId(p.id)));
 
   protected readonly filters = FILTERS;
   protected readonly showDone = signal(false);

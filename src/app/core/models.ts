@@ -157,7 +157,8 @@ export type ActivityVerb =
   | 'note.converted'
   | 'file.uploaded'
   | 'file.linked'
-  | 'file.deleted';
+  | 'file.deleted'
+  | 'task.moved';
 
 export interface ActivityEntry {
   id: Id;
