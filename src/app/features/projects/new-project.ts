@@ -23,7 +23,7 @@ import { Icon } from '../../shared/ui/icon';
 
     @if (!session.can('project.create')) {
       <div class="card mt-6">
-        <app-empty title="No tienes permiso para crear proyectos" hint="Pide a producción o a administración que lo cree y te invite." />
+        <app-empty title="No tienes permiso para crear proyectos" hint="Pide a producción que lo cree y te invite." />
       </div>
     } @else {
       <section class="mt-6">

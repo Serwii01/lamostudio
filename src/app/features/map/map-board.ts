@@ -128,7 +128,7 @@ const NEW_NAME = 'Nueva localización';
               <span class="eyebrow">Notas de producción</span>
               <textarea
                 class="input mt-2 min-h-24 font-light text-[15px]"
-                placeholder="Accesos, horarios, permisos, luz, ruido…"
+                placeholder="Accesos, luz, ruido…"
                 [value]="loc.notes ?? ''"
                 [disabled]="!canEdit()"
                 (change)="patch(loc, { notes: $any($event.target).value.trim() || undefined })"
@@ -144,7 +144,7 @@ const NEW_NAME = 'Nueva localización';
                   <app-badge [tone]="taskStatus[t.status].tone">{{ taskStatus[t.status].label }}</app-badge>
                 </button>
               } @empty {
-                <p class="hand text-sm">Aún no hay visitas ni tareas para este sitio.</p>
+                <p class="hand text-sm">Sin visitas todavía.</p>
               }
               @if (canEdit()) {
                 <button class="btn btn-primary btn-sm mt-3" (click)="locations.scheduleVisit(loc)">
@@ -165,7 +165,7 @@ const NEW_NAME = 'Nueva localización';
               </button>
             </footer>
             @if (canEdit()) {
-              <p class="hand mt-3 text-sm">Arrastra el pin en el mapa para ajustar la posición.</p>
+              <p class="hand mt-3 text-sm">Arrastra el pin para moverlo.</p>
             }
           </section>
         } @else {
@@ -191,7 +191,7 @@ const NEW_NAME = 'Nueva localización';
                       <button class="btn btn-primary btn-sm shrink-0" (click)="addFromSearch(r)">Añadir</button>
                     </li>
                   } @empty {
-                    <li class="hand px-2 text-sm">No encuentro «{{ lastQuery() }}». Prueba con la ciudad, o pon el pin a mano con «Añadir en el mapa».</li>
+                    <li class="hand px-2 text-sm">No encuentro «{{ lastQuery() }}». Añade la ciudad o pon el pin a mano.</li>
                   }
                 </ul>
               }
@@ -237,7 +237,7 @@ const NEW_NAME = 'Nueva localización';
                 @if (projectLocations().length) {
                   <app-empty title="Nada con este filtro" [compact]="true" doodle="circle" />
                 } @else {
-                  <app-empty title="Aún no hay localizaciones" hint="Busca una dirección arriba o pulsa «Añadir en el mapa» y haz clic en el sitio." doodle="mountain" />
+                  <app-empty title="Aún no hay localizaciones" hint="Busca una dirección o pon un pin en el mapa." doodle="mountain" />
                 }
               </li>
             }

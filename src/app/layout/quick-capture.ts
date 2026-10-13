@@ -35,7 +35,7 @@ import { Icon } from '../shared/ui/icon';
           #contentField
           class="input min-h-36 resize-y font-light text-base"
           name="content"
-          placeholder="Escribe una idea, un acuerdo de reunión, un recordatorio…"
+          placeholder="Una idea, un acuerdo, un recordatorio…"
           [(ngModel)]="content"
           (keydown.control.enter)="save()"
           (keydown.meta.enter)="save()"

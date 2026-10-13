@@ -21,9 +21,7 @@ type Filter = 'active' | 'closed' | 'all';
   template: `
     <header class="flex flex-wrap items-end justify-between gap-4">
       <div>
-        <p class="eyebrow">{{ session.workspace().name }}</p>
-        <h1 class="page-title mt-2">Proyectos</h1>
-        <p class="hand mt-2 text-base">Cada proyecto, solo con las piezas que necesita.</p>
+        <h1 class="page-title">Proyectos</h1>
       </div>
       @if (session.can('project.create')) {
         <a routerLink="/proyectos/nuevo" class="btn btn-primary"><app-icon name="plus" /> Nuevo proyecto</a>
@@ -37,7 +35,7 @@ type Filter = 'active' | 'closed' | 'all';
       <label class="relative ml-auto w-full sm:w-64">
         <span class="sr-only">Filtrar proyectos</span>
         <app-icon name="search" class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ink-faint" />
-        <input class="input rounded-full pl-9" placeholder="Filtrar por nombre o cliente" [(ngModel)]="query" />
+        <input class="input rounded-full pl-9" placeholder="Filtrar" [(ngModel)]="query" />
       </label>
     </div>
 
@@ -45,16 +43,16 @@ type Filter = 'active' | 'closed' | 'all';
       @for (p of filtered(); track p.id) {
         <a
           [routerLink]="['/proyectos', p.id]"
-          class="card group flex flex-col transition-[border-color,box-shadow,translate] duration-300 hover:-translate-y-0.5 hover:border-ink-faint hover:shadow-xl hover:shadow-ink/5"
+          class="card lift group flex flex-col overflow-hidden"
         >
+          <!-- Bloque de color del proyecto con su inicial, en grande -->
+          <div class="relative flex h-28 items-end justify-between px-5 pb-3" [style.background]="p.cover" aria-hidden="true">
+            <span class="text-[88px] leading-[0.78] font-light tracking-[-0.05em] text-white/90">{{ p.name.charAt(0) }}</span>
+            <span class="mb-1 rounded-full bg-white/90 px-2.5 py-0.5 text-xs text-ink">{{ typeLabel[p.type] }}</span>
+          </div>
           <div class="flex flex-1 flex-col p-5">
-            <div class="flex items-center justify-between gap-3">
-              <p class="flex items-center gap-2 text-xs text-ink-faint">
-                <span class="size-2.5 rounded-full" [style.background]="p.cover"></span>{{ typeLabel[p.type] }}
-              </p>
-              <app-badge [tone]="status[p.status].tone">{{ status[p.status].label }}</app-badge>
-            </div>
-            <h2 class="mt-1.5 font-display text-xl leading-snug font-light group-hover:underline">{{ p.name }}</h2>
+            <app-badge [tone]="status[p.status].tone" class="self-start">{{ status[p.status].label }}</app-badge>
+            <h2 class="mt-2 font-display text-xl leading-snug font-light">{{ p.name }}</h2>
             <p class="mt-0.5 text-ink-soft">{{ p.client ?? 'Proyecto interno' }}</p>
 
             <div class="mt-auto pt-6">
@@ -73,7 +71,7 @@ type Filter = 'active' | 'closed' | 'all';
         </a>
       } @empty {
         <div class="card sm:col-span-2 xl:col-span-3">
-          <app-empty title="No hay proyectos que mostrar" hint="Prueba con otro filtro o crea un proyecto nuevo." />
+          <app-empty title="Nada por aquí" hint="Prueba otro filtro." />
         </div>
       }
     </div>

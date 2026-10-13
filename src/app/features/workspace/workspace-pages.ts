@@ -20,7 +20,7 @@ import { Icon } from '../../shared/ui/icon';
     <header>
       <p class="eyebrow">{{ session.workspace().name }}</p>
       <h1 class="page-title mt-2">Equipo</h1>
-      <p class="hand mt-2 text-base">Carga calculada con las horas estimadas de tareas abiertas que vencen en los próximos 7 días.</p>
+      <p class="hand mt-3 text-base">Horas de esta semana frente a las disponibles.</p>
     </header>
 
     <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

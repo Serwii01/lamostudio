@@ -40,7 +40,7 @@ function toDraft(project: Project | undefined): Draft {
   imports: [FormsModule, CdkDropList, CdkDrag, Avatar, Empty, Icon],
   template: `
     @if (!session.can('project.manage')) {
-      <div class="card"><app-empty title="Sin permisos" hint="Solo producción, dirección o administración pueden configurar el proyecto." /></div>
+      <div class="card"><app-empty title="Sin permisos" hint="Solo producción, dirección o administración." /></div>
     } @else if (project(); as p) {
       <div class="grid grid-cols-1 gap-6 lg:grid-cols-5">
         <form class="card space-y-4 p-5 lg:col-span-3" (ngSubmit)="save(p)">

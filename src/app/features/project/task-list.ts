@@ -57,7 +57,7 @@ const VIEWS: { id: View; label: string; test: (t: Task, userId: string) => boole
 
     @if (canEdit()) {
       <p class="hand mt-4 text-sm">
-        Arrastra una fila a otro grupo para cambiar su estado<span class="hidden lg:inline">, o a un proyecto de la izquierda para moverla</span>.
+        Arrastra para cambiar de estado<span class="hidden lg:inline"> o de proyecto</span>.
       </p>
     }
 

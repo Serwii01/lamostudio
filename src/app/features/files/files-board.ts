@@ -48,9 +48,8 @@ const FILTERS: { id: KindFilter; label: string; kinds: FileKind[] }[] = [
     @if (!projectId() && !compact()) {
       <header class="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p class="eyebrow">Todos los proyectos</p>
-          <h1 class="page-title mt-2">Biblioteca</h1>
-          <p class="hand mt-2 text-base">Referencias, entregas y documentos del estudio, en un solo sitio.</p>
+          <h1 class="page-title">Biblioteca</h1>
+          <p class="hand mt-3 text-base">Todo lo subido, en un sitio.</p>
         </div>
         @if (storage(); as s) {
           <p class="text-xs text-ink-faint">{{ s }}</p>
@@ -108,7 +107,7 @@ const FILTERS: { id: KindFilter; label: string; kinds: FileKind[] }[] = [
           <div class="flex-1">
             <p class="font-display font-bold">Arrastra archivos aquí</p>
             <p class="text-sm text-ink-soft">
-              Imágenes, vídeo, audio, PDF y documentos de hasta {{ maxMb }} MB. Para brutos pesados, pega un enlace.
+              Hasta {{ maxMb }} MB. Para brutos pesados, pega un enlace.
             </p>
           </div>
           <div class="flex flex-wrap justify-center gap-2">
@@ -220,7 +219,7 @@ const FILTERS: { id: KindFilter; label: string; kinds: FileKind[] }[] = [
             @if (scoped().length) {
               <app-empty title="Nada con ese filtro" hint="Prueba con otro tipo o búsqueda." [compact]="true" />
             } @else {
-              <app-empty title="Aún no hay archivos" hint="Sube referencias, maquetas o entregas, o pega el enlace de Drive o Frame.io." doodle="paper" />
+              <app-empty title="Aún no hay archivos" hint="Arrastra archivos o pega un enlace." doodle="paper" />
             }
           </div>
         }

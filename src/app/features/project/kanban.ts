@@ -22,7 +22,7 @@ import { Icon } from '../../shared/ui/icon';
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
       <p class="hand text-sm">
         @if (canEdit()) {
-          Arrastra las tarjetas entre columnas para cambiar su estado ↓
+          Arrastra para cambiar de estado ↓
         } @else {
           Así va el trabajo del proyecto.
         }

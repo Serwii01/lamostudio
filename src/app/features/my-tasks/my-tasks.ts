@@ -40,8 +40,7 @@ const FILTERS: { id: Filter; label: string; test: (t: Task) => boolean }[] = [
   template: `
     <header class="flex flex-wrap items-end justify-between gap-4">
       <div>
-        <p class="eyebrow">Todos los proyectos</p>
-        <h1 class="page-title mt-2">Tareas</h1>
+        <h1 class="page-title">Tareas</h1>
         <p class="hand mt-2 text-base">{{ subtitle() }}</p>
       </div>
       <div class="inline-flex rounded-full border border-line bg-surface p-0.5" role="group" aria-label="De quién">
@@ -115,7 +114,7 @@ const FILTERS: { id: Filter; label: string; test: (t: Task) => boolean }[] = [
           } @else {
             <app-empty
               [title]="scope() === 'mias' ? 'No tienes tareas pendientes' : 'El equipo no tiene tareas pendientes'"
-              hint="Cuando haya trabajo aparecerá aquí, ordenado por fecha."
+              hint="Aquí aparecerá lo que haya que hacer."
               doodle="mountain"
             >
               @if (session.can('task.edit')) {

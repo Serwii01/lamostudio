@@ -208,7 +208,7 @@ import { FilesBoard } from '../files/files-board';
             <h3 class="eyebrow mb-2">Descripción</h3>
             <textarea
               class="input min-h-24 resize-y"
-              placeholder="Contexto, criterios de aceptación, enlaces…"
+              placeholder="Contexto, enlaces…"
               [value]="t.description ?? ''"
               [disabled]="!canEdit()"
               (change)="update(t, { description: $any($event.target).value })"

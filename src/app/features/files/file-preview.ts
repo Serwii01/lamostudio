@@ -107,7 +107,7 @@ import { Icon } from '../../shared/ui/icon';
                     <app-icon name="external" [size]="14" /> Abrir en {{ file().provider }}
                   </button>
                 } @else {
-                  <p class="hand">Este tipo de archivo no se puede previsualizar.</p>
+                  <p class="hand">Sin vista previa para este tipo.</p>
                   <button class="btn btn-primary mt-2" (click)="files.download(file())">
                     <app-icon name="download" [size]="14" /> Descargar
                   </button>

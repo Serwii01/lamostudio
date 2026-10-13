@@ -22,7 +22,7 @@ import { Keys } from '../shared/ui/keys';
         <header class="mb-6 flex items-start justify-between gap-4">
           <div>
             <h2 id="shortcuts-title" class="page-title">Atajos y gestos</h2>
-            <p class="hand mt-2">Las teclas solas no hacen nada mientras escribes en un campo.</p>
+            <p class="hand mt-3">Las teclas solas no actúan mientras escribes.</p>
           </div>
           <button class="btn btn-ghost size-9 px-0" aria-label="Cerrar" (click)="ui.helpOpen.set(false)">
             <app-icon name="x" [size]="18" />

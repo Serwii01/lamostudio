@@ -35,7 +35,7 @@ import { Keys } from '../shared/ui/keys';
           <input
             #field
             class="h-14 flex-1 bg-transparent text-base text-ink placeholder:text-ink-faint focus:outline-none"
-            placeholder="¿Qué quieres hacer? Crea, ve a un sitio o busca…"
+            placeholder="¿Qué quieres hacer?"
             role="combobox"
             aria-controls="palette-list"
             [attr.aria-activedescendant]="items()[active()] ? 'palette-' + active() : null"
@@ -71,7 +71,7 @@ import { Keys } from '../shared/ui/keys';
           } @empty {
             <li class="px-4 py-10 text-center">
               <p class="font-display font-bold">Nada con «{{ query() }}»</p>
-              <p class="hand mt-1">Prueba con otra palabra: «tarea», «tablero», «subir»…</p>
+              <p class="hand mt-1">Prueba «tarea», «tablero» o «subir».</p>
             </li>
           }
         </ul>

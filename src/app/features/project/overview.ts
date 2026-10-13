@@ -30,7 +30,7 @@ import { Enso } from '../../shared/ui/scribble';
             <div class="flex flex-col gap-6 sm:flex-row sm:items-center">
               <app-enso [value]="stats().progress" [size]="120" class="self-center" />
               <div class="min-w-0 flex-1">
-                <p class="hand">{{ stats().done }} de {{ stats().total }} tareas completadas</p>
+                <p class="hand">{{ stats().done }} de {{ stats().total }} hechas</p>
                 @if (p.description) {
                   <p class="mt-2 max-w-prose text-[15px] leading-relaxed text-ink">{{ p.description }}</p>
                 }
@@ -85,9 +85,9 @@ import { Enso } from '../../shared/ui/scribble';
                 } @else {
                   <div class="px-5 py-6">
                     <p class="font-display font-bold">Empieza por la primera tarea</p>
-                    <p class="hand mb-4 text-sm">Escribe qué hay que hacer y pulsa Enter. Luego podrás asignarla y ponerle fecha.</p>
+                    <p class="hand mb-4 text-sm">Escríbela y pulsa Enter.</p>
                     @if (canEdit()) {
-                      <app-task-quick-add [projectId]="projectId()" placeholder="p. ej. Reunión de briefing con el cliente" />
+                      <app-task-quick-add [projectId]="projectId()" placeholder="p. ej. Briefing con el cliente" />
                     }
                   </div>
                 }

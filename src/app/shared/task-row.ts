@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { PRIORITY, TASK_STATUS, TONE_TEXT, isTaskDone } from '../core/catalog';
 import { Task } from '../core/models';
 import { FileService } from '../core/services/files';
@@ -11,6 +11,8 @@ import { Avatar } from './ui/avatar';
 import { Badge } from './ui/badge';
 import { TaskFileDrop } from './task-file-drop';
 import { Icon } from './ui/icon';
+
+const REDUCED_MOTION = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 @Component({
   selector: 'app-task-row',
@@ -35,12 +37,19 @@ import { Icon } from './ui/icon';
       <button
         type="button"
         class="grid size-[22px] shrink-0 cursor-pointer place-items-center rounded-full border-[1.5px] transition-colors disabled:cursor-default"
-        [class]="done() ? 'border-ink/30 text-shu' : 'border-ink/30 text-transparent hover:border-ink hover:text-ink/30'"
+        [class]="done() ? 'pop border-ink/30 text-shu' : 'border-ink/30 text-transparent hover:border-ink hover:text-ink/30'"
         [disabled]="!canEdit()"
         [attr.aria-label]="done() ? 'Marcar como pendiente' : 'Marcar como hecha'"
-        (click)="$event.stopPropagation(); tasks.toggleDone(task())"
+        (click)="$event.stopPropagation(); toggle()"
       >
-        <app-icon name="check-hand" [size]="20" [stroke]="2.6" class="-mt-1 ml-1" />
+        @if (done()) {
+          <!-- El check se dibuja (y el círculo salta) al completar la tarea. -->
+          <svg viewBox="0 0 24 24" width="20" height="20" class="draw -mt-1 ml-1" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true">
+            <path pathLength="1" d="M4.5 12.8c1.7.9 3.2 2.6 4.6 5 2.5-5.4 6-9.6 10.6-12.8" />
+          </svg>
+        } @else {
+          <app-icon name="check-hand" [size]="20" [stroke]="2.6" class="-mt-1 ml-1" />
+        }
       </button>
 
       <div class="min-w-0 flex-1">
@@ -100,7 +109,25 @@ export class TaskRow {
   private readonly files = inject(FileService);
 
   protected readonly attachments = computed(() => this.files.countByTask().get(this.task().id) ?? 0);
-  protected readonly done = computed(() => isTaskDone(this.task().status));
+  /** Mientras se completa, el check ya se ve dibujado aunque la tarea aún no haya cambiado. */
+  private readonly completing = signal(false);
+  protected readonly done = computed(() => this.completing() || isTaskDone(this.task().status));
+
+  /**
+   * Al completar, primero se dibuja el check y después la tarea cambia de estado (y
+   * suele desaparecer de la lista): así se ve el gesto. Al reabrir, es inmediato.
+   */
+  protected toggle(): void {
+    const task = this.task();
+    if (isTaskDone(task.status) || this.completing()) {
+      void this.tasks.toggleDone(task);
+      return;
+    }
+    this.completing.set(true);
+    setTimeout(() => {
+      void this.tasks.toggleDone(task).finally(() => this.completing.set(false));
+    }, REDUCED_MOTION ? 0 : 450);
+  }
   protected readonly statusMeta = computed(() => TASK_STATUS[this.task().status]);
   protected readonly priorityLabel = computed(() => PRIORITY[this.task().priority].label);
   protected readonly priorityClass = computed(() => TONE_TEXT[PRIORITY[this.task().priority].tone]);

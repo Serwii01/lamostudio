@@ -151,10 +151,10 @@
 
   /* Título de página con subrayado de garabato en rojo shu. */
   .page-title {
-    @apply inline-block font-display text-[32px] leading-tight font-light tracking-tight;
-    padding-bottom: 0.55rem;
+    @apply inline-block font-display text-[34px] leading-[1.05] font-light tracking-[-0.03em] sm:text-[48px];
+    padding-bottom: 0.7rem;
     background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 12'%3E%3Cpath d='M3 8c14-5 26 2 40-1s24-6 38-2 22 3 36-2' fill='none' stroke='%23ff3131' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E")
-      no-repeat left bottom / 4.5rem 0.6rem;
+      no-repeat left bottom / 6rem 0.8rem;
   }
 
   /* Encabezado de tarjeta */
@@ -266,5 +266,63 @@
   }
   .lamo-tooltip::before {
     display: none;
+  }
+}
+
+/* ------------------------------------------------------------------------ */
+/* Gestos juveniles: dibujar, saltar, inclinarse                             */
+/* ------------------------------------------------------------------------ */
+@keyframes lamo-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes lamo-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.22); }
+  100% { transform: scale(1); }
+}
+
+@layer components {
+  /* Trazo que se dibuja al aparecer (check de tarea hecha). El path lleva pathLength="1". */
+  .draw path {
+    stroke-dasharray: 1;
+    animation: lamo-draw 380ms cubic-bezier(0.3, 0.7, 0.4, 1) both;
+  }
+
+  .pop {
+    animation: lamo-pop 320ms cubic-bezier(0.3, 0.7, 0.4, 1.4);
+  }
+
+  /* Tarjeta que se levanta y se tuerce un poco al pasar el ratón. */
+  .lift {
+    transition: transform 220ms cubic-bezier(0.3, 0.7, 0.4, 1.4), box-shadow 220ms, border-color 150ms;
+  }
+  .lift:hover {
+    transform: translateY(-4px) rotate(-0.6deg);
+    box-shadow: 0 14px 28px -12px rgb(30 29 27 / 0.18);
+  }
+
+  /* Cifra grande de la franja de métricas. */
+  .metric {
+    @apply flex flex-col gap-1 px-5 py-6 transition-colors hover:bg-ink/[0.03];
+  }
+  .metric-n {
+    @apply text-[56px] leading-none font-light tracking-[-0.04em] tabular-nums;
+  }
+  .metric-l {
+    @apply text-sm text-ink-soft;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .draw path,
+  .pop {
+    animation: none;
+  }
+  .lift,
+  .lift:hover {
+    transition: none;
+    transform: none;
   }
 }

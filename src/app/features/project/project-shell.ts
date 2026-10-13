@@ -95,7 +95,7 @@ export function requireModule(...moduleIds: ProjectModuleId[]): CanActivateFn {
       <router-outlet />
     } @else {
       <div class="card">
-        <app-empty title="Proyecto no encontrado" hint="Puede que se haya eliminado o que no tengas acceso.">
+        <app-empty title="Proyecto no encontrado" hint="Puede que se borrara o que no tengas acceso.">
           <a routerLink="/proyectos" class="btn btn-outline">Volver a proyectos</a>
         </app-empty>
       </div>

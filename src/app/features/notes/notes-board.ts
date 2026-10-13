@@ -32,9 +32,8 @@ const VISIBILITY_LABEL: Record<NoteVisibility, string> = {
   template: `
     @if (!projectId()) {
       <header class="mb-6">
-        <p class="eyebrow">Captura sin fricción</p>
         <h1 class="page-title mt-2">Notas</h1>
-        <p class="hand mt-2 text-base">Ideas, actas y recordatorios. Pulsa <kbd class="rounded border border-line bg-surface px-1.5 text-xs">N</kbd> en cualquier pantalla para crear una.</p>
+        <p class="hand mt-3 text-base">Pulsa <kbd class="kbd">N</kbd> en cualquier sitio para apuntar algo.</p>
       </header>
     }
 
@@ -84,7 +83,9 @@ const VISIBILITY_LABEL: Record<NoteVisibility, string> = {
               cdkDrag
               [cdkDragData]="n"
               [cdkDragDisabled]="!canEdit(n) || editingId() === n.id"
-              class="card relative mb-5 break-inside-avoid p-5 transition-colors hover:border-ink-faint"
+              class="group relative mb-5 break-inside-avoid rounded-2xl p-5 shadow-[0_6px_16px_-10px_rgb(30_29_27/0.35)] transition-[rotate,translate,box-shadow] duration-200 rotate-(--tilt) hover:-translate-y-1 hover:rotate-0 hover:shadow-[0_14px_26px_-12px_rgb(30_29_27/0.35)]"
+              [class]="sticky(n).bg"
+              [style.--tilt]="sticky(n).tilt"
               [class.cursor-grab]="canEdit(n) && editingId() !== n.id"
               [attr.title]="canEdit(n) ? 'Arrastra la nota a un proyecto de la izquierda para moverla' : null"
             >
@@ -120,8 +121,10 @@ const VISIBILITY_LABEL: Record<NoteVisibility, string> = {
                 <span>{{ session.member(n.authorId)?.name }}</span>
                 <span>·</span>
                 <span>{{ ago(n.updatedAt) }}</span>
-                <span>·</span>
-                <span class="inline-flex items-center gap-1"><app-icon [name]="n.visibility === 'private' ? 'lock' : 'eye'" [size]="12" />{{ visibilityLabel[n.visibility] }}</span>
+                @if (n.visibility === 'private') {
+                  <span>·</span>
+                  <span class="inline-flex items-center gap-1"><app-icon name="lock" [size]="12" />{{ visibilityLabel[n.visibility] }}</span>
+                }
                 @if (!projectId() && projects.byId(n.projectId); as p) {
                   <a [routerLink]="['/proyectos', p.id]" class="inline-flex items-center gap-1 hover:text-ink">
                     <span class="size-2 rounded-full" [style.background]="p.cover"></span>{{ p.name }}
@@ -136,7 +139,7 @@ const VISIBILITY_LABEL: Record<NoteVisibility, string> = {
               }
 
               @if (canEdit(n) && editingId() !== n.id) {
-                <div class="mt-3 flex flex-wrap items-center gap-1 border-t border-line/60 pt-2.5">
+                <div class="mt-3 flex flex-wrap items-center gap-1 border-t border-ink/10 pt-2.5 transition-opacity lg:opacity-0 lg:group-hover:opacity-100 lg:focus-within:opacity-100">
                   @if (!n.linkedTaskId && session.can('task.edit')) {
                     @if (convertingId() === n.id) {
                       <select class="input h-7 flex-1 text-xs" aria-label="Proyecto de destino" #target>
@@ -202,6 +205,16 @@ export class NotesBoard {
       return !q || normalize(`${n.title ?? ''} ${n.content}`).includes(q);
     });
   });
+
+  /** Cada nota es un pósit: un tono suave de la paleta y una inclinación leve, estables por nota. */
+  protected sticky(note: QuickNote): { bg: string; tilt: string } {
+    let hash = 0;
+    for (const ch of note.id) hash = (hash * 31 + ch.charCodeAt(0)) | 0;
+    const tints = ['bg-honey-soft', 'bg-ocean-soft', 'bg-moss-soft', 'bg-plum-soft', 'bg-coral-soft', 'bg-surface'];
+    const tilts = ['-1deg', '0.7deg', '-0.4deg', '1deg', '0.3deg'];
+    const h = Math.abs(hash);
+    return { bg: tints[h % tints.length], tilt: tilts[h % tilts.length] };
+  }
 
   protected canEdit(note: QuickNote): boolean {
     return note.authorId === this.session.currentUserId() || this.session.can('project.manage');

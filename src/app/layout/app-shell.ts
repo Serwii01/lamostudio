@@ -132,8 +132,6 @@ const NAV: NavItem[] = [
           <p class="flex flex-wrap items-center gap-x-3 gap-y-1 px-1 text-[11px] text-ink-faint">
             <button class="cursor-pointer hover:text-ink" (click)="ui.paletteOpen.set(true)"><kbd class="kbd">{{ modKey }}</kbd> <kbd class="kbd">K</kbd> comandos</button>
             <button class="cursor-pointer hover:text-ink" (click)="ui.helpOpen.set(true)"><kbd class="kbd">?</kbd> atajos</button>
-            <span><kbd class="kbd">T</kbd> tarea</span>
-            <span><kbd class="kbd">N</kbd> nota</span>
           </p>
           <div class="flex items-center gap-2">
             <details class="group/user relative min-w-0 flex-1" #userMenu>
@@ -184,7 +182,6 @@ const NAV: NavItem[] = [
         <div class="ml-auto flex items-center gap-2">
           <button class="btn btn-ghost hidden h-9 gap-2 px-3 lg:inline-flex" title="Paleta de comandos: haz cualquier cosa escribiendo" (click)="ui.paletteOpen.set(true)">
             <app-icon name="bolt" [size]="15" />
-            <span class="text-xs">Comandos</span>
             <span class="flex gap-0.5"><kbd class="kbd">{{ modKey }}</kbd><kbd class="kbd">K</kbd></span>
           </button>
           @if (session.can('note.create')) {
