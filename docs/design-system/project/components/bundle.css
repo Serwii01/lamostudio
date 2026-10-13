@@ -1,0 +1,145 @@
+/*
+ * Lamo Studio — clases de componente, equivalentes en CSS plano a las de src/styles.css
+ * (allí se escriben con @apply de Tailwind). Leen los tokens de tokens.css.
+ */
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 20px;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--shu);
+  outline-offset: 2px;
+}
+
+/* Tarjeta */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-2xl);
+}
+
+.card-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 700;
+}
+
+/* Botones */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--radius-full);
+  font: 500 14px/20px var(--font-sans);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 150ms, color 150ms, border-color 150ms;
+}
+.btn:disabled { opacity: 0.4; pointer-events: none; }
+.btn-primary { background: var(--ink); color: var(--surface); }
+.btn-primary:hover { background: rgba(30, 29, 27, 0.8); }
+.btn-accent { background: var(--shu); color: #ffffff; }
+.btn-accent:hover { background: var(--coral); }
+.btn-outline { background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
+.btn-outline:hover { border-color: var(--ink-faint); }
+.btn-ghost { background: transparent; color: var(--ink-soft); }
+.btn-ghost:hover { background: rgba(30, 29, 27, 0.05); color: var(--ink); }
+.btn-danger { background: transparent; color: var(--coral); }
+.btn-danger:hover { background: var(--coral-soft); }
+.btn-sm { height: 28px; padding: 0 10px; font-size: 12px; line-height: 16px; }
+
+/* Campos */
+.input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  color: var(--ink);
+  font: 400 14px/20px var(--font-sans);
+  transition: border-color 150ms;
+}
+.input::placeholder { color: var(--ink-faint); opacity: 0.7; }
+.input:focus { border-color: var(--ink); outline: none; }
+.label { display: block; margin-bottom: 4px; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--ink-soft); }
+
+/* Chips (filtros) */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  color: var(--ink-soft);
+  font: 500 12px/16px var(--font-sans);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.chip:hover { border-color: var(--ink-faint); color: var(--ink); }
+.chip-active, .chip-active:hover { border-color: var(--ink); background: var(--ink); color: var(--surface); }
+
+/* Insignias de estado */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font: 500 12px/16px var(--font-sans);
+  white-space: nowrap;
+}
+.badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.badge-neutral { background: rgba(30, 29, 27, 0.05); color: var(--ink-soft); }
+.badge-ocean { background: var(--ocean-soft); color: var(--ocean); }
+.badge-honey { background: var(--honey-soft); color: var(--honey); }
+.badge-moss { background: var(--moss-soft); color: var(--moss); }
+.badge-plum { background: var(--plum-soft); color: var(--plum); }
+.badge-coral { background: var(--coral-soft); color: var(--coral); }
+
+/* Texto */
+.eyebrow { font-size: 11px; line-height: 16px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); }
+.hand { font-family: var(--font-hand); color: var(--ink-soft); }
+.count { padding: 1px 8px; border-radius: var(--radius-full); background: rgba(30, 29, 27, 0.05); font-size: 12px; font-weight: 500; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  font: 400 11px/1 var(--font-sans);
+  color: var(--ink-soft);
+}
+
+/* Título de página con subrayado a mano en shu */
+.page-title {
+  display: inline-block;
+  margin: 0;
+  padding-bottom: 0.55rem;
+  font-family: var(--font-display);
+  font-size: 28px;
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 12'%3E%3Cpath d='M3 8c14-5 26 2 40-1s24-6 38-2 22 3 36-2' fill='none' stroke='%23ff3131' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat left bottom / 4.5rem 0.6rem;
+}

@@ -1,0 +1,55 @@
+<!-- @dsCard height=288 -->
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400&family=Zen+Maru+Gothic:wght@700&display=swap">
+<style>
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--paper); overflow: hidden; }
+  .cover { position: relative; width: 960px; height: 288px; }
+  .art { position: absolute; inset: 0; }
+  .ink { fill: var(--ink); }
+  .surface { fill: var(--surface); }
+  .kincha { fill: var(--cover-kincha); }
+  .matcha { fill: var(--cover-matcha); }
+  .shu { fill: var(--shu); }
+  .ring { fill: none; stroke: var(--shu); stroke-width: 20px; stroke-linecap: round; }
+  .slab { rx: var(--radius-2xl); }
+  .text { position: absolute; left: 40px; bottom: 32px; max-width: 440px; }
+  .name {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 100px;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .tagline { margin: 16px 0 0; font-family: var(--font-sans); font-size: 14px; line-height: 20px; color: var(--ink-soft); }
+</style>
+</head>
+<body>
+<div class="cover">
+  <svg class="art" viewBox="0 0 960 288" width="960" height="288" aria-hidden="true">
+    <!--
+      bloques: ink 208×272 (rebasa por arriba), surface 200×264 (rebasa a la derecha y abajo), kincha 48×96 (píldora), matcha disco r32, shu disco r20.
+      composición: una losa alta de tinta con satélites; todo a la derecha de x = 480.
+      patrón: motivo literal, dos aros de enso en shu apilados sobre la tinta, porque el logo son dos lazos apilados y la app dibuja el progreso como un enso.
+      escalas: huecos de space-6 (24px) y space-4 (16px); losas con radius-2xl; píldora y discos con la mitad de su lado corto.
+    -->
+    <rect class="ink slab" x="560" y="-24" width="208" height="272" />
+    <circle class="ring" cx="664" cy="76" r="44" pathLength="100" stroke-dasharray="86 14" transform="rotate(-70 664 76)" />
+    <circle class="ring" cx="664" cy="180" r="44" pathLength="100" stroke-dasharray="90 10" transform="rotate(40 664 180)" />
+    <rect class="surface slab" x="784" y="48" width="200" height="264" />
+    <rect class="kincha" x="808" y="72" width="48" height="96" rx="24" />
+    <circle class="matcha" cx="904" cy="208" r="32" />
+    <circle class="shu" cx="516" cy="244" r="20" />
+  </svg>
+  <div class="text">
+    <p class="name">Lamo<br>Studio</p>
+    <p class="tagline">Papel, tinta y un punto rojo: gestión de proyectos creativos con calma.</p>
+  </div>
+</div>
+</body>
+</html>

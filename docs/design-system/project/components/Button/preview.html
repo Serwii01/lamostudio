@@ -1,0 +1,30 @@
+<!-- @dsCard group="Acciones" height=150 subtitle="Píldoras: primario, acento, contorno, fantasma y peligro" -->
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;700&display=swap">
+<style>
+  .stage { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 20px; }
+  .col { display: grid; gap: 12px; padding: 20px; }
+  .note { font-size: 12px; color: var(--ink-faint); }
+
+</style>
+</head>
+<body>
+<div class="col">
+  <div class="stage" style="padding:0">
+    <button class="btn btn-primary">+ Nueva tarea</button>
+    <button class="btn btn-accent">Crear un proyecto</button>
+    <button class="btn btn-outline">Nota</button>
+    <button class="btn btn-ghost">Cancelar</button>
+    <button class="btn btn-danger">Eliminar</button>
+  </div>
+  <div class="stage" style="padding:0">
+    <button class="btn btn-outline btn-sm">Adjuntar archivo</button>
+    <button class="btn btn-primary btn-sm">Comentar</button>
+    <button class="btn btn-primary" disabled>Crear tarea</button>
+  </div>
+</div>
+</body>
+</html>

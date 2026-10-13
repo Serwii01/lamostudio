@@ -1,0 +1,29 @@
+<!-- @dsCard group="Estado" height=130 subtitle="Estado de tareas y proyectos" -->
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;700&display=swap">
+<style>
+  .stage { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 20px; }
+  .col { display: grid; gap: 12px; padding: 20px; }
+  .note { font-size: 12px; color: var(--ink-faint); }
+
+</style>
+</head>
+<body>
+<div class="col">
+  <div class="stage" style="padding:0">
+    <span class="badge badge-neutral">Por hacer</span>
+    <span class="badge badge-ocean">En curso</span>
+    <span class="badge badge-honey">En revisión</span>
+    <span class="badge badge-moss">Hecha</span>
+  </div>
+  <div class="stage" style="padding:0">
+    <span class="badge badge-plum">En producción</span>
+    <span class="badge badge-coral">Cambios solicitados</span>
+    <span class="badge badge-coral">Bloqueada</span>
+  </div>
+</div>
+</body>
+</html>
